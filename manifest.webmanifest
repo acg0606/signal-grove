@@ -1,0 +1,10 @@
+{
+  "name": "Signal Grove · Open-source mechanic preview",
+  "short_name": "Signal Grove",
+  "description": "Offline DEMO/REPLAY of a mobile-first cooperative social mechanic.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#090b16",
+  "theme_color": "#12162c",
+  "icons": []
+}

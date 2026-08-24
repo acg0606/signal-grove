@@ -1,0 +1,11 @@
+{
+  "name": "signal-grove",
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Open-source DEMO_REPLAY of a mobile-first cooperative mechanic for Decentraland Friendzone.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/core.test.mjs tests/server.test.mjs"
+  }
+}

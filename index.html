@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12162c">
+  <meta name="description" content="Signal Grove is an open-source DEMO_REPLAY of a mobile-first cooperative social mechanic.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Signal Grove · Open-source mechanic preview</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 64 64'%3E%3Crect rx='16' width='64' height='64' fill='%2312162c'/%3E%3Ccircle cx='32' cy='32' r='21' fill='none' stroke='%2395f6cf' stroke-width='5'/%3E%3Ccircle cx='32' cy='17' r='6' fill='%23ffb37c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#game">Skip to the playable mechanic</a>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Signal Grove home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span><strong>Signal Grove</strong><small>social mechanic lab</small></span>
+    </a>
+    <div class="runtime-badges" aria-label="Runtime truth labels">
+      <span>PUBLIC SOURCE PREVIEW</span>
+      <span>DEMO/REPLAY</span>
+      <span>NO DECENTRALAND CONNECTION</span>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">A mobile-first social ritual · vertical slice 0.2</p>
+        <h1 id="hero-title">Make belonging a move players can feel.</h1>
+        <p class="lede">Signal Grove prototypes one tiny cooperative loop: read two companions' intentions, choose the missing social role, and help a quiet commons come alive. It tests touch, coordination, readable feedback and replay value without connecting to a wallet, world, cloud service or external API.</p>
+        <div class="hero-actions">
+          <a class="primary-link" href="#game">Enter the grove</a>
+          <button class="text-button" id="guided-replay" type="button">Play guided replay</button>
+        </div>
+      </div>
+      <div class="grove-visual" aria-label="Three abstract companions gathering around a dormant social seed">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="avatar avatar-you"><span>You</span></div>
+        <div class="avatar avatar-luma"><span>Luma</span></div>
+        <div class="avatar avatar-moss"><span>Moss</span></div>
+        <div class="seed-core"><span>0</span><small>connection</small></div>
+      </div>
+    </section>
+
+    <aside class="truth-panel" aria-labelledby="truth-title">
+      <div>
+        <p class="eyebrow">Runtime boundary</p>
+        <h2 id="truth-title">This is the mechanic, not the world integration.</h2>
+      </div>
+      <ul>
+        <li><strong>Local only.</strong> No telemetry, accounts or remote requests.</li>
+        <li><strong>Scripted companions.</strong> Luma and Moss are deterministic replay actors, not live people.</li>
+        <li><strong>Blocked by design.</strong> Publishing, wallet access and Decentraland/Godot integration remain human-gated.</li>
+      </ul>
+    </aside>
+
+    <section class="game-shell" id="game" aria-labelledby="game-title">
+      <div class="game-heading">
+        <div>
+          <p class="eyebrow">Touch prototype · 4 rounds</p>
+          <h2 id="game-title">The Grove Circle</h2>
+          <p>Companions reveal what they plan to do. Choose a role that expands the group's social range.</p>
+        </div>
+        <button class="secondary-button" id="restart" type="button">Restart circle</button>
+      </div>
+
+      <div class="game-grid">
+        <section class="scene-card" aria-labelledby="round-title">
+          <div class="round-row">
+            <div>
+              <p class="kicker">Current ritual</p>
+              <h3 id="round-title">Round <span id="round-number">1</span> of 4</h3>
+            </div>
+            <span class="status-pill" id="session-status">IN PROGRESS</span>
+          </div>
+
+          <div class="companions" aria-label="Companion intentions">
+            <article class="companion-card companion-luma">
+              <span class="portrait" aria-hidden="true">L</span>
+              <div><small>Luma signals</small><strong id="intent-a">Listen</strong></div>
+            </article>
+            <article class="companion-card companion-moss">
+              <span class="portrait" aria-hidden="true">M</span>
+              <div><small>Moss signals</small><strong id="intent-b">Build</strong></div>
+            </article>
+          </div>
+
+          <fieldset class="action-fieldset">
+            <legend>How will you join?</legend>
+            <div class="action-grid" id="action-grid">
+              <button class="action-card action-listen" type="button" data-action="listen" aria-describedby="desc-listen">
+                <span class="action-glyph" aria-hidden="true">◌</span><strong>Listen closely</strong><small id="desc-listen">Make room for a quieter signal.</small>
+              </button>
+              <button class="action-card action-invite" type="button" data-action="invite" aria-describedby="desc-invite">
+                <span class="action-glyph" aria-hidden="true">＋</span><strong>Invite someone in</strong><small id="desc-invite">Open the circle to a new voice.</small>
+              </button>
+              <button class="action-card action-build" type="button" data-action="build" aria-describedby="desc-build">
+                <span class="action-glyph" aria-hidden="true">◇</span><strong>Build together</strong><small id="desc-build">Turn group intent into a shared object.</small>
+              </button>
+            </div>
+          </fieldset>
+
+          <div class="turn-feedback" id="turn-feedback" role="status" aria-live="polite">
+            Read the two signals, then add the social role the circle is missing.
+          </div>
+        </section>
+
+        <aside class="pulse-card" aria-labelledby="pulse-title">
+          <p class="kicker">Shared state</p>
+          <h3 id="pulse-title">Commons pulse</h3>
+          <div class="metric">
+            <div><span>Connection</span><strong id="connection-value">0</strong></div>
+            <progress id="connection-meter" max="50" value="0" aria-label="Connection 0 of 50">0 of 50</progress>
+          </div>
+          <div class="metric">
+            <div><span>Trust</span><strong id="trust-value">18</strong></div>
+            <progress id="trust-meter" max="60" value="18" aria-label="Trust 18 of 60">18 of 60</progress>
+          </div>
+          <div class="metric">
+            <div><span>Momentum</span><strong id="momentum-value">18</strong></div>
+            <progress id="momentum-meter" max="60" value="18" aria-label="Momentum 18 of 60">18 of 60</progress>
+          </div>
+          <div class="history-block">
+            <h4>Circle memory</h4>
+            <ol id="history-list"><li class="empty-history">No moves yet. Your first choice becomes shared memory.</li></ol>
+          </div>
+        </aside>
+      </div>
+
+      <section class="outcome-card" id="outcome-card" hidden tabindex="-1" aria-labelledby="outcome-title">
+        <p class="eyebrow">Replay complete</p>
+        <h3 id="outcome-title">The commons is awake.</h3>
+        <p id="outcome-copy">The group covered the complete social spectrum often enough to wake the grove.</p>
+        <div class="proof-actions">
+          <button class="primary-button" id="generate-proof" type="button">Generate local replay proof</button>
+          <button class="secondary-button" id="export-proof" type="button" disabled>Export proof JSON</button>
+        </div>
+        <dl class="proof-panel" id="proof-panel" hidden>
+          <div><dt>Mode</dt><dd>DEMO_REPLAY</dd></div>
+          <div><dt>Integration</dt><dd>NOT_CONNECTED</dd></div>
+          <div><dt>SHA-256</dt><dd id="proof-fingerprint"></dd></div>
+        </dl>
+      </section>
+    </section>
+
+    <section class="design-notes" aria-labelledby="design-title">
+      <div>
+        <p class="eyebrow">What this slice tests</p>
+        <h2 id="design-title">One mechanic, four product questions.</h2>
+      </div>
+      <div class="note-grid">
+        <article><span>01</span><h3>Can social intent be legible?</h3><p>Players see companion signals before acting, turning coordination into a readable decision instead of hidden luck.</p></article>
+        <article><span>02</span><h3>Can touch feel intentional?</h3><p>Three large actions, concise language and immediate contrast make the core loop usable on narrow screens.</p></article>
+        <article><span>03</span><h3>Can cooperation create mastery?</h3><p>The strongest move is not always the same action. It is the action that expands the group's current range.</p></article>
+        <article><span>04</span><h3>Can evidence stay honest?</h3><p>Every replay proof says local demo, no connection and scripted companions. It cannot masquerade as a live world session.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p><strong>Signal Grove 0.3</strong> · Open-source preview for <code>dora-decentraland-friendzone</code>.</p>
+    <p>No wallet · no Decentraland/Godot runtime · no public World deployment · no submission.</p>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script type="module" src="app.mjs"></script>
+</body>
+</html>
