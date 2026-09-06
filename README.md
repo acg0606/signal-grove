@@ -23,4 +23,15 @@ Its scripted companions illustrate the initial concept; they do not establish
 multiplayer integration. The actual SDK scene lives in `decentraland/` and has
 no simulated player companions.
 
+To run the earlier web prototype with Node.js 20 or newer:
+
+```sh
+node scripts/serve.mjs
+npm test
+```
+
+Open `http://127.0.0.1:4327/`. Its development server accepts only loopback
+connections. The existing [architecture](docs/ARCHITECTURE.md) and
+[security notes](docs/SECURITY-PRIVACY.md) describe the standalone replay.
+
 Built with AI-assisted development. Project source is MIT licensed; see LICENSE.
