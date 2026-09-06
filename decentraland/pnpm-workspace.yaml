@@ -1,0 +1,4 @@
+allowBuilds:
+  '@dcl/sdk-commands': false
+  esbuild: true
+  protobufjs: true

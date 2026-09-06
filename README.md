@@ -1,42 +1,26 @@
 # Signal Grove
 
-Signal Grove is a mobile-first cooperative social mechanic created for the Decentraland Friendzone Mobile Buildathon. A player reads two scripted companions' intentions and chooses one complementary role: listen, invite, or build. Four deterministic rounds make group care and echo-loop risk playable and auditable.
+Signal Grove is a social meeting scene for the Decentraland Friendzone Buildathon.
+Players choose a conversation signal at three pedestals; the scene shares real
+player signals through the SDK MessageBus and presents a touch-friendly HUD.
 
-## Current truth
+## Decentraland implementation
 
-- `FACT`: this public repository contains the tested open-source web mechanic and deterministic replay core.
-- `DEMO_REPLAY`: companions, rounds, receipts, and outcomes are synthetic local demonstrations.
-- `LIVE=false`: there is no public Decentraland World, Godot runtime, multiplayer session, persistent world state, wallet, token, or chain connection in this version.
-- `UNKNOWN`: the final platform adapter, public World URL, mobile persistence receipts, final video, and DoraHacks submission do not exist yet.
+The [decentraland](decentraland/README.md) directory contains the actual SDK7
+scene, its locked dependencies, setup commands, and behavioral tests.
+Typechecking, nine deterministic tests, and the official SDK build passed on
+2026-09-06. The room reducer handles out-of-order updates, expiry, malformed
+messages and duplicate revisions.
 
-This release satisfies the source-review and setup portion of the project. It does not claim that the platform-native judged path is complete.
+No persistent public World, two-player runtime validation or mobile-client
+validation is claimed yet. A public World and final official submission are
+still pending. Follow the SDK README for those remaining checks.
 
-## Run locally
+## Earlier web prototype
 
-Node.js 20 or newer is sufficient; the project has no runtime dependencies.
+The files at the repository root are the earlier standalone web prototype.
+Its scripted companions illustrate the initial concept; they do not establish
+multiplayer integration. The actual SDK scene lives in `decentraland/` and has
+no simulated player companions.
 
-```powershell
-node .\scripts\serve.mjs
-```
-
-Open <http://127.0.0.1:4327/>. The development server refuses non-loopback binding.
-
-## Test
-
-```powershell
-npm test
-```
-
-The tests cover the deterministic social loop, receipt reconstruction, replay integrity, loopback-only serving, security headers, rejected mutations, and path traversal failures.
-
-## Architecture
-
-The browser proposes a role action, while `core.mjs` owns deterministic state transitions and the canonical replay receipt. `app.mjs` is a DOM adapter only. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/SECURITY-PRIVACY.md](docs/SECURITY-PRIVACY.md).
-
-## Planned official path
-
-The next release must port the same role-and-receipt contract into the official Decentraland World workflow, then prove public deployment, mobile performance, persistence, and truthful participant provenance. The local replay remains a secondary fallback and review tool.
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+Built with AI-assisted development. Project source is MIT licensed; see LICENSE.

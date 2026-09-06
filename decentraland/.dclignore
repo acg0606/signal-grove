@@ -1,0 +1,9 @@
+node_modules
+tests
+docs
+src
+*.log
+pnpm-lock.yaml
+tsconfig.json
+README.md
+.git

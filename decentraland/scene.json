@@ -1,0 +1,13 @@
+{
+  "display": {
+    "title": "Signal Grove",
+    "description": "A small cooperative grove. Real visitors choose Listen, Invite or Build; different roles make a shared bloom grow."
+  },
+  "main": "bin/index.js",
+  "runtimeVersion": "7",
+  "scene": { "parcels": ["0,0"], "base": "0,0" },
+  "spawnPoints": [{ "name": "grove entrance", "default": true, "position": { "x": 8, "y": 1, "z": 2 }, "cameraTarget": { "x": 8, "y": 1.5, "z": 8 } }],
+  "requiredPermissions": [],
+  "featureToggles": { "voiceChat": "enabled", "portableExperiences": "enabled" },
+  "skyboxConfig": { "fixedTime": 36000 }
+}

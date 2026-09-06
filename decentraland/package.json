@@ -1,0 +1,21 @@
+{
+  "name": "signal-grove-decentraland",
+  "version": "0.3.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "sdk-commands build --skip-install",
+    "start": "sdk-commands start --skip-install --no-browser",
+    "check": "tsc --noEmit",
+    "test": "tsx --test tests/room.test.ts"
+  },
+  "dependencies": {
+    "@dcl/sdk": "7.27.0",
+    "@dcl/js-runtime": "7.27.0"
+  },
+  "devDependencies": {
+    "@dcl/sdk-commands": "7.27.0",
+    "typescript": "5.8.3",
+    "tsx": "4.20.3"
+  }
+}
