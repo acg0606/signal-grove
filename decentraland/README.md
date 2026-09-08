@@ -12,18 +12,18 @@ Use Node.js 22 or later and pnpm 11 (tested with 11.19.0).
 pnpm install --frozen-lockfile
 pnpm check
 pnpm test
-pnpm build
-pnpm start --port 8347
+pnpm build:production
+pnpm start:local
 ```
 
-Set `DCL_DISABLE_ANALYTICS=true` in the shell to disable SDK CLI telemetry. `start` leaves browser opening to the operator. Open the local preview URL printed by the SDK. Import this directory as a scene in Creator Hub for the official desktop/mobile preview workflow.
+`start` and `start:local` serve the built scene only on `127.0.0.1:8347`. The wrapper disables CLI analytics, automatic browser/client launch, implicit installs and file watching. Build explicitly before starting and after source edits; stop the server when not in use. Configure the official desktop client to preview that local realm and parcel `0,0`. Physical phones cannot reach this loopback-only server: they require a separately approved test setup. No public tunnel or browser local-network permission is enabled by these scripts.
 
 The allowlist in `pnpm-workspace.yaml` permits the registry packages esbuild/protobufjs to prepare their runtime. SDK commands' optional context-file postinstall is disabled; it is not required to build this scene. Builds do not install dependencies implicitly.
 
 ## What is implemented
 
 - One parcel, primitive geometry, no downloaded art/audio, asset credentials or third-party runtime API.
-- Three 54 px touch buttons, matching world pedestals and continuous, host-free cooperative feedback.
+- Three 58 px role buttons with dark text, explicit Selected/Pending labels, matching world pedestals and contextual cooperative guidance. Physical touch QA remains pending.
 - Decentraland MessageBus transport with SDK player IDs; each remote payload must match its transport sender.
 - Monotonic revision rejection, 3-second heartbeats, 30-second presence expiry and a 32-participant memory bound.
 - Local state from real connected clients only. No scripted companions, simulated attendance, persistence service, payments or wallet actions.
@@ -32,7 +32,7 @@ The transport synchronizes participation within a realm. It is not an anti-cheat
 
 ## Evidence and limits
 
-`pnpm check`, all nine reducer/identity tests, and the official SDK build passed on 2026-09-06. The build emits `bin/index.js`. Tests cover solo behavior, complementary roles, reordered messages, replayed revisions, expiry, capacity recovery, malformed input, sender binding and omission of unexpected payload fields.
+`pnpm check`, all 19 automated tests and the official production build passed on 2026-09-07. Coverage includes nine room/identity tests, eight HUD presentation/contrast tests and two authentication-proxy safety regressions. These tests do not establish a successful login, rendered UI or live transport delivery. The retained SDK patch restores normal TLS verification and filters decompressed response framing; it does not modify authentication assets or sign a deployment.
 
 These automated two-reducer convergence tests are not evidence of two real Decentraland clients communicating. A public World, actual desktop/mobile runtime test, measured in-client performance, multiplayer video and DoraHacks submission receipt remain pending. No World name, wallet owner, deployment transaction, personal eligibility or submission success is assumed.
 

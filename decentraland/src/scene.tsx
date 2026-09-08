@@ -4,8 +4,9 @@ import { MessageBus } from '@dcl/sdk/message-bus'
 import { getPlayer, onEnterScene, onLeaveScene } from '@dcl/sdk/src/players'
 import ReactEcs, { ReactEcsRenderer, UiEntity, Label, Button } from '@dcl/sdk/react-ecs'
 import { describeGrove, mergeSignal, mergeRemoteSignal, ROLES, type Role, type Room, type Signal } from './room'
+import { describeHud, HUD_COLORS } from './presentation'
 
-const palette = { listen: Color4.create(0.21, 0.79, 0.73, 1), invite: Color4.create(0.97, 0.72, 0.39, 1), build: Color4.create(0.66, 0.55, 0.97, 1) }
+const palette = HUD_COLORS
 let room: Room = {}
 let role: Role | null = null
 let revision = 0
@@ -18,7 +19,7 @@ let lastStatus = ''
 
 function publishSignal() {
   const player = getPlayer()
-  if (!player?.userId) return
+  if (!player?.userId) { me = ''; refreshGrove(); return }
   me = player.userId.toLowerCase()
   const signal: Signal = { schema: 'signal-grove/1', playerId: me, revision: ++revision, role }
   room = mergeSignal(room, signal, Date.now())
@@ -43,7 +44,7 @@ function refreshGrove() {
   const scale = 0.6 + state.bloom * 1.8
   Transform.getMutable(bloom).scale = Vector3.create(scale, scale, scale)
   Material.setPbrMaterial(bloom, { albedoColor: state.variety === 3 ? Color4.create(0.95, 0.78, 0.38, 1) : Color4.create(0.28, 0.77, 0.55, 1), roughness: 1 })
-  TextShape.getMutable(sign).text = state.status.replace(/_/g, ' ') + '\n' + state.contributors + ' visitors contributing'
+  TextShape.getMutable(sign).text = state.status.replace(/_/g, ' ') + '\n' + describeHud(room, Date.now(), me, role).contribution
   if (state.status !== lastStatus) {
     console.log('[Signal Grove]', JSON.stringify({ mode: 'SDK7_SCENE', status: state.status, contributors: state.contributors, variety: state.variety, scriptedPlayers: 0, walletActions: 0 }))
     lastStatus = state.status
@@ -51,15 +52,16 @@ function refreshGrove() {
 }
 
 function ui() {
-  const state = describeGrove(room, Date.now())
-  return <UiEntity uiTransform={{ width: '96%', maxWidth: 410, height: 245, positionType: 'absolute', position: { left: '2%', top: '3%' }, flexDirection: 'column', padding: 12 }} uiBackground={{ color: Color4.create(0.035, 0.08, 0.065, 0.93) }}>
-    <Label value="SIGNAL GROVE" fontSize={24} color={Color4.White()} uiTransform={{ height: 34 }} />
-    <Label value={state.visitors + ' here · Your role: ' + (role || 'choose below')} fontSize={15} color={Color4.create(0.74, 0.9, 0.81, 1)} uiTransform={{ height: 28 }} />
-    <UiEntity uiTransform={{ height: 58, width: '100%', justifyContent: 'space-between' }}>
-      {ROLES.map(item => <Button key={item} value={item.toUpperCase() + ' ' + state.counts[item]} fontSize={16} uiTransform={{ width: '32%', height: 54 }} uiBackground={{ color: palette[item] }} onMouseDown={() => choose(item)} />)}
+  const hud = describeHud(room, Date.now(), me, role)
+  return <UiEntity uiTransform={{ width: '96%', maxWidth: 410, height: 280, positionType: 'absolute', position: { left: '2%', top: '3%' }, flexDirection: 'column', padding: 12 }} uiBackground={{ color: palette.panel }}>
+    <Label value="SIGNAL GROVE" fontSize={24} color={palette.text} textAlign="middle-left" uiTransform={{ height: 30, flexShrink: 0 }} />
+    <Label value="Choose a role. Different roles grow the bloom." fontSize={14} color={palette.secondary} textAlign="middle-left" uiTransform={{ height: 36, flexShrink: 0 }} />
+    <Label value={hud.presence} fontSize={14} color={palette.secondary} textAlign="middle-left" uiTransform={{ height: 26, flexShrink: 0 }} />
+    <UiEntity uiTransform={{ height: 64, width: '100%', flexShrink: 0, justifyContent: 'space-between' }}>
+      {hud.buttons.map(item => <Button key={item.role} value={item.label} fontSize={14} color={palette.ink} uiTransform={{ width: '32%', height: 58, borderWidth: 2, borderColor: item.selected ? palette.text : palette[item.role] }} uiBackground={{ color: palette[item.role] }} onMouseDown={() => choose(item.role)} />)}
     </UiEntity>
-    <Label value={state.message} fontSize={14} color={Color4.White()} uiTransform={{ height: 68, width: '100%' }} />
-    <Label value="Real visitors only · no bots, rewards or wallet actions" fontSize={11} color={Color4.create(0.68, 0.77, 0.72, 1)} uiTransform={{ height: 25 }} />
+    <Label value={hud.title + '\n' + hud.action} fontSize={14} color={palette.text} textAlign="middle-left" uiTransform={{ height: 72, width: '100%', flexShrink: 0 }} />
+    <Label value="No bots, rewards or wallet actions" fontSize={12} color={palette.muted} textAlign="middle-left" uiTransform={{ height: 26, flexShrink: 0 }} />
   </UiEntity>
 }
 

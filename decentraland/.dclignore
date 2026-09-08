@@ -4,6 +4,14 @@ docs
 src
 *.log
 pnpm-lock.yaml
+pnpm-workspace.yaml
 tsconfig.json
 README.md
 .git
+.patch-work
+patches
+scripts
+DESIGN.md
+design-reference-plan.json
+design-reference-decision.md
+design-implementation-handoff.md

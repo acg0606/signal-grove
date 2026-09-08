@@ -2,3 +2,5 @@ allowBuilds:
   '@dcl/sdk-commands': false
   esbuild: true
   protobufjs: true
+patchedDependencies:
+  '@dcl/sdk-commands@7.27.0': patches/@dcl__sdk-commands@7.27.0.patch

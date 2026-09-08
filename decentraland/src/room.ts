@@ -1,5 +1,6 @@
 export const ROLES = ['listen', 'invite', 'build'] as const
 export type Role = typeof ROLES[number]
+export type GroveStatus = 'WAITING_FOR_FRIEND' | 'ECHO_LOOP' | 'SHARED_RHYTHM' | 'FULL_SPECTRUM'
 export const PRESENCE_TTL_MS = 30_000
 export const MAX_VISITORS = 32
 export interface Signal { schema: 'signal-grove/1'; playerId: string; revision: number; role: Role | null }
@@ -37,7 +38,7 @@ export function describeGrove(room: Room, now: number) {
   const counts = { listen: 0, invite: 0, build: 0 }
   for (const visitor of contributors) counts[visitor.role as Role]++
   const variety = ROLES.filter(role => counts[role] > 0).length
-  const status = contributors.length < 2 ? 'WAITING_FOR_FRIEND'
+  const status: GroveStatus = contributors.length < 2 ? 'WAITING_FOR_FRIEND'
     : variety === 1 ? 'ECHO_LOOP' : variety === 2 ? 'SHARED_RHYTHM' : 'FULL_SPECTRUM'
   const messages = {
     WAITING_FOR_FRIEND: 'The grove needs two real visitors. Invite a friend and choose different roles.',

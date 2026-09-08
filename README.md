@@ -8,13 +8,19 @@ player signals through the SDK MessageBus and presents a touch-friendly HUD.
 
 The [decentraland](decentraland/README.md) directory contains the actual SDK7
 scene, its locked dependencies, setup commands, and behavioral tests.
-Typechecking, nine deterministic tests, and the official SDK build passed on
-2026-09-06. The room reducer handles out-of-order updates, expiry, malformed
-messages and duplicate revisions.
+Typechecking, 19 automated tests, and the official production build passed on
+2026-09-07. Coverage includes room identity/expiry, HUD state and text contrast,
+and authentication-proxy safety regressions. Proxy tests do not prove login
+success. The HUD now distinguishes pending and locally applied choices.
 
 No persistent public World, two-player runtime validation or mobile-client
 validation is claimed yet. A public World and final official submission are
 still pending. Follow the SDK README for those remaining checks.
+
+Preview defaults are loopback-only, with no browser or client auto-launch.
+No public inbound port, private-key export or disabled TLS validation is needed
+for this source package. Configure publication separately for an authorized
+World; no borrowed World or private support transcript is included here.
 
 ## Earlier web prototype
 

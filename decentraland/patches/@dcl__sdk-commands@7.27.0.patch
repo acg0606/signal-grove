@@ -1,0 +1,39 @@
+diff --git a/dist/linker-dapp/routes.js b/dist/linker-dapp/routes.js
+index f30a1ec591bdef2d8a43970b8ab5319bccd21c22..51f359f002d1cbadb2e4d3dfb535bafa74ef7aac 100644
+--- a/dist/linker-dapp/routes.js
++++ b/dist/linker-dapp/routes.js
+@@ -5,7 +5,6 @@ exports.proxiedResponseHeaders = proxiedResponseHeaders;
+ exports.setRoutes = setRoutes;
+ const path_1 = require("path");
+ const stream_1 = require("stream");
+-const undici_1 = require("undici");
+ const http_server_1 = require("@well-known-components/http-server");
+ const STRIPPED_REQUEST_HEADERS = new Set([
+     'connection',
+@@ -41,7 +40,7 @@ function proxiedResponseHeaders(headers) {
+     const result = {};
+     for (const [key, value] of headers) {
+         const name = key.toLowerCase();
+-        if (['content-encoding', 'content-length'].includes(name))
++        if (name === 'content-encoding' || STRIPPED_REQUEST_HEADERS.has(name))
+             continue;
+         result[name] = value;
+     }
+@@ -57,7 +56,6 @@ function setRoutes(components, info, mainRoute = '/') {
+     const { fs } = components;
+     const router = new http_server_1.Router();
+     const linkerDapp = (0, path_1.dirname)(require.resolve('@dcl/linker-dapp/package.json'));
+-    const insecureDispatcher = new undici_1.Agent({ connect: { rejectUnauthorized: false } });
+     router.get(mainRoute, async () => ({
+         headers: { 'Content-Type': 'text/html' },
+         body: fs.createReadStream((0, path_1.resolve)(linkerDapp, 'index.html'))
+@@ -88,8 +86,7 @@ function setRoutes(components, info, mainRoute = '/') {
+                     origin: url
+                 }),
+                 body: ctx.request.body,
+-                duplex: 'half',
+-                dispatcher: insecureDispatcher
++                duplex: 'half'
+             });
+             const responseHeaders = proxiedResponseHeaders(response.headers);
+             return {

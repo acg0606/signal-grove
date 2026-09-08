@@ -5,9 +5,11 @@
   "license": "MIT",
   "scripts": {
     "build": "sdk-commands build --skip-install",
-    "start": "sdk-commands start --skip-install --no-browser",
+    "build:production": "sdk-commands build --skip-install --production",
+    "start": "node scripts/start-local-preview.mjs",
+    "start:local": "node scripts/start-local-preview.mjs",
     "check": "tsc --noEmit",
-    "test": "tsx --test tests/room.test.ts"
+    "test": "tsx --test tests/room.test.ts tests/presentation.test.ts tests/linker-auth.test.cjs"
   },
   "dependencies": {
     "@dcl/sdk": "7.27.0",

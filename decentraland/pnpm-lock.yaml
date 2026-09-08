@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@dcl/sdk-commands@7.27.0': 565df1a5fb9681a03b88c1e882379d5b2cf8e10da18a2a65290b93f2fd64714e
+
 importers:
 
   .:
@@ -17,7 +20,7 @@ importers:
     devDependencies:
       '@dcl/sdk-commands':
         specifier: 7.27.0
-        version: 7.27.0(@well-known-components/interfaces@1.5.2)
+        version: 7.27.0(patch_hash=565df1a5fb9681a03b88c1e882379d5b2cf8e10da18a2a65290b93f2fd64714e)(@well-known-components/interfaces@1.5.2)
       tsx:
         specifier: 4.20.3
         version: 4.20.3
@@ -1592,7 +1595,7 @@ snapshots:
       ajv-errors: 3.0.0(ajv@8.20.0)
       ajv-keywords: 5.1.0(ajv@8.20.0)
 
-  '@dcl/sdk-commands@7.27.0(@well-known-components/interfaces@1.5.2)':
+  '@dcl/sdk-commands@7.27.0(patch_hash=565df1a5fb9681a03b88c1e882379d5b2cf8e10da18a2a65290b93f2fd64714e)(@well-known-components/interfaces@1.5.2)':
     dependencies:
       '@dcl/crypto': 3.7.0
       '@dcl/ecs': 7.27.0
@@ -1636,7 +1639,7 @@ snapshots:
       '@dcl/ecs-math': 2.1.0
       '@dcl/js-runtime': 7.27.0
       '@dcl/react-ecs': 7.27.0
-      '@dcl/sdk-commands': 7.27.0(@well-known-components/interfaces@1.5.2)
+      '@dcl/sdk-commands': 7.27.0(patch_hash=565df1a5fb9681a03b88c1e882379d5b2cf8e10da18a2a65290b93f2fd64714e)(@well-known-components/interfaces@1.5.2)
     transitivePeerDependencies:
       - '@well-known-components/interfaces'
       - bufferutil
