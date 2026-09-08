@@ -1,6 +1,6 @@
 {
   "name": "affinity-arena-decentraland",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -10,7 +10,8 @@
     "start": "node scripts/start-local-preview.mjs",
     "start:local": "node scripts/start-local-preview.mjs",
     "check": "tsc --noEmit",
-    "test": "tsx --test tests/room.test.ts tests/presentation.test.ts tests/arena.test.ts tests/arena-session.test.ts tests/arena-layout.test.ts tests/linker-auth.test.cjs"
+    "test": "tsx --test tests/room.test.ts tests/presentation.test.ts tests/arena.test.ts tests/arena-session.test.ts tests/arena-layout.test.ts tests/arena-audio.test.ts tests/linker-auth.test.cjs",
+    "audio:generate": "node scripts/generate-arena-audio.mjs"
   },
   "dependencies": {
     "@dcl/sdk": "7.27.0",

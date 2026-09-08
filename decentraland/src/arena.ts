@@ -1,6 +1,7 @@
 /** Affinity Arena: casual, realm-local cooperative preparation and team duel.
  * Pure rules: no SDK, clock reads, wallet operations, sound recordings or bots.
  */
+import { hitCount, noteLane, noteTime, recordNote } from './rhythm'
 export const GENRES = ['kpop', 'funk', 'latin', 'afrobeats', 'hiphop', 'electronic'] as const
 export type Genre = typeof GENRES[number]
 export const GENRE_NAMES: Record<Genre, string> = { kpop: 'K-pop', funk: 'Brazilian Funk', latin: 'Latin Urban', afrobeats: 'Afrobeats', hiphop: 'Hip-hop', electronic: 'Electronic' }
@@ -10,6 +11,7 @@ export type Phase = 'lobby' | 'training' | 'battle' | 'result'
 export const TRAINING_MS = 7000
 export const CUE_MS = 2000
 export const TURN_MS = 12000
+export const CARD_PICK_MS = 3500
 export const RESULT_MS = 18000
 export const TRAINING_ROUNDS = 6
 export const BATTLE_ROUNDS = 5
@@ -22,7 +24,7 @@ export interface Arena {
   log: string[]; winner: Genre | 'draw' | null
 }
 export type Command = { kind: 'join'; genre: Genre } | { kind: 'ready' } | { kind: 'leave' }
-  | { kind: 'beat'; value: number } | { kind: 'card'; value: Card }
+  | { kind: 'beat'; value: number } | { kind: 'note'; value: number; index: number } | { kind: 'card'; value: Card }
 export interface Envelope { match: string; phase: Phase; round: number; command: Command }
 export function validId(id: unknown): id is string {
   return typeof id === 'string' && /^[a-z0-9:_-]{1,80}$/.test(id) && !['constructor', 'prototype', '__proto__'].includes(id)
@@ -32,19 +34,19 @@ const int = (v: unknown, min: number, max: number): v is number => Number.isSafe
 export function validCommand(value: unknown): value is Command {
   if (!value || typeof value !== 'object') return false
   const c = value as Command
-  return c.kind === 'join' ? genre(c.genre) : c.kind === 'beat' ? int(c.value, 0, 2)
+  return c.kind === 'join' ? genre(c.genre) : c.kind === 'note' ? int(c.value, 0, 2) && int(c.index, 0, 3) : c.kind === 'beat' ? int(c.value, 0, 2)
     : c.kind === 'card' ? CARDS.includes(c.value) : c.kind === 'ready' || c.kind === 'leave'
 }
 export function newArena(now: number, match: string, seed = 1): Arena {
   return { match, version: 0, phase: 'lobby', round: 0, since: now, seed: seed >>> 0, players: [], crews: [], choices: {}, log: ['Find your music crew. Two crews, two real people each.'], winner: null }
 }
 function copy(s: Arena): Arena { return { ...s, version: s.version + 1, players: s.players.map(p => ({ ...p })), crews: s.crews.map(c => ({ ...c })), choices: { ...s.choices }, log: [...s.log] } }
-export function cueFor(s: Arena, id: string): number {
+export function cueFor(s: Arena, id: string, index = 0): number {
   const slot = s.players.findIndex(p => p.id === id)
   // Both teams receive equivalent patterns by teammate position, not genre.
   const member = s.players[slot]
   const lane = member ? s.players.filter(p => p.genre === member.genre).findIndex(p => p.id === id) : 0
-  return ((s.seed % 3) + s.round + lane) % 3
+  return noteLane(s.seed, s.round, lane, index)
 }
 export function applyCommand(s: Arena, id: string, e: Envelope, now: number): Arena {
   if (!validId(id) || !e || !validCommand(e.command) || e.match !== s.match || e.phase !== s.phase || e.round !== s.round || !Number.isFinite(now) || now < s.since) return s
@@ -70,15 +72,22 @@ export function applyCommand(s: Arena, id: string, e: Envelope, now: number): Ar
     if (n.players.length === 4 && n.players.every(p => p.ready) && new Set(n.players.map(p => p.genre)).size === 2) {
       n.phase = 'training'; n.since = now
       n.crews = [...new Set(n.players.map(p => p.genre))].map(g => ({ genre: g, hp: 100, energy: 4, shield: 0, hits: 0, harmony: 0 }))
-      n.log = ['Watch your cue. Remember it, then tap together.']
+      n.log = ['Hit C/E/G at the strike line. Three of four notes earns a rehearsal success.']
     }
     return n
   }
+  if (command.kind === 'note') {
+    if (s.phase !== 'training' && s.phase !== 'battle') return s
+    const key = `${id}:notes`, mask = Number(s.choices[key] ?? 0)
+    const next = recordNote(mask, command.index, command.value, cueFor(s, id, command.index), now - s.since, noteTime(s.round, command.index, s.phase === 'battle'))
+    if (next === mask) return s
+    const n = copy(s); n.choices[key] = next; return n
+  }
   if (Object.prototype.hasOwnProperty.call(s.choices, id)) return s
   if (command.kind === 'beat') {
-    if (s.phase !== 'training' || now < s.since + CUE_MS || now >= s.since + TRAINING_MS) return s
+    return s // Legacy memory-cue commands cannot bypass the rhythm exercise.
   } else if (command.kind === 'card') {
-    if (s.phase !== 'battle' || now >= s.since + TURN_MS) return s
+    if (s.phase !== 'battle' || now >= s.since + CARD_PICK_MS) return s
   } else return s
   const n = copy(s); n.choices[id] = command.value; return n
 }
@@ -86,10 +95,10 @@ function train(s: Arena): void {
   s.log = []
   for (const crew of s.crews) {
     const members = s.players.filter(p => p.genre === crew.genre)
-    const hits = members.filter(p => s.choices[p.id] === cueFor(s, p.id)).length
+    const hits = members.filter(p => hitCount(Number(s.choices[`${p.id}:notes`] ?? 0)) >= 3).length
     crew.hits += hits
     if (hits === 2) crew.harmony++
-    s.log.push(`${GENRE_NAMES[crew.genre]}: ${hits}/2 cues${hits === 2 ? ' - harmony!' : ''}`)
+    s.log.push(`${GENRE_NAMES[crew.genre]}: ${hits}/2 rehearsals${hits === 2 ? ' - harmony!' : ''}`)
   }
 }
 function battle(s: Arena): void {
@@ -107,7 +116,8 @@ function battle(s: Arena): void {
     const charges = cards.filter(c => c === 'charge').length
     if (funded) {
       crew.energy -= cost
-      damage[i] = attacks * 13 + (combos === 2 ? 36 : combos * 5)
+      const notes = s.players.filter(p => p.genre === crew.genre).reduce((sum, p) => sum + hitCount(Number(s.choices[`${p.id}:notes`] ?? 0)), 0)
+      damage[i] = attacks * 13 + (combos === 2 ? 36 : combos * 5) + (attacks + combos > 0 ? Math.floor(notes / 2) : 0)
       protection[i] = guards * 10
     }
     crew.energy = Math.min(12, crew.energy + charges * 3 + 1)

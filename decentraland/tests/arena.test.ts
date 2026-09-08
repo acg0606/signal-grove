@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { newArena, applyCommand, advance, cueFor, publicSnapshot, validSnapshot, validCommand, GENRES, TRAINING_MS, TURN_MS, CUE_MS, type Arena, type Command } from '../src/arena'
 const ids = ['a', 'b', 'c', 'd']
+import { noteTime, hitCount, recordNote, TEMPOS } from '../src/rhythm'
 function send(s: Arena, id: string, command: Command, now = s.since) { return applyCommand(s, id, { match: s.match, phase: s.phase, round: s.round, command }, now) }
 function ready() {
   let s = newArena(1000, 'host:1000')
@@ -12,7 +13,7 @@ function ready() {
 function trained(correct = true) {
   let s = ready()
   for (let r = 0; r < 6; r++) {
-    if (correct) ids.forEach(id => { s = send(s, id, { kind: 'beat', value: cueFor(s, id) }, s.since + CUE_MS) })
+    if (correct) for (let index = 0; index < 4; index++) ids.forEach(id => { s = send(s, id, { kind: 'note', index, value: cueFor(s, id, index) }, s.since + noteTime(s.round, index)) })
     s = advance(s, s.since + TRAINING_MS)
   }
   return s
@@ -35,12 +36,13 @@ test('capacity, duplicate identity, third crew and unequal team size are rejecte
   s = send(s, 'c', { kind: 'join', genre: 'funk' })
   assert.equal(send(s, 'd', { kind: 'join', genre: 'latin' }), s)
 })
-test('training choices are accepted only after the cue hides, once, before deadline', () => {
-  const s = ready(), c: Command = { kind: 'beat', value: 1 }
+test('notes only score near their target, once; legacy beat cannot bypass timing', () => {
+  const s = ready(), c: Command = { kind: 'note', index: 0, value: cueFor(s, 'a') }
   assert.equal(send(s, 'a', c), s)
   assert.equal(send(s, 'a', c, s.since + TRAINING_MS), s)
-  const n = send(s, 'a', c, s.since + CUE_MS)
-  assert.equal(send(n, 'a', { kind: 'beat', value: 2 }, n.since + 3000), n)
+  const n = send(s, 'a', c, s.since + noteTime(0, 0))
+  assert.equal(send(n, 'a', c, n.since + noteTime(0, 0) + 10), n)
+  assert.equal(send(s, 'a', { kind: 'beat', value: cueFor(s, 'a') }, s.since + CUE_MS), s)
 })
 test('team preparation sets capped battle energy and protection', () => {
   const best = trained(), missed = trained(false)
@@ -49,7 +51,7 @@ test('team preparation sets capped battle energy and protection', () => {
   assert.deepEqual(missed.crews.map(c => [c.energy, c.shield]), [[4, 0], [4, 0]])
 })
 test('only both teammates succeeding earns harmony; no one-player farming', () => {
-  let s = ready(); s = send(s, 'a', { kind: 'beat', value: cueFor(s, 'a') }, s.since + CUE_MS)
+  let s = ready(); for (let index = 0; index < 4; index++) s = send(s, 'a', { kind: 'note', index, value: cueFor(s, 'a', index) }, s.since + noteTime(s.round, index))
   s = advance(s, s.since + TRAINING_MS)
   assert.equal(s.crews[0].hits, 1); assert.equal(s.crews[0].harmony, 0)
 })
@@ -103,4 +105,31 @@ test('published snapshots redact live choices and validate hostile input', () =>
   assert.equal(validSnapshot({ ...publicSnapshot(s), players: [...s.players, s.players[0]] }), false)
   assert.equal(validSnapshot({ ...publicSnapshot(s), crews: [{ ...s.crews[0], energy: Infinity }] }), false)
   assert.equal(validSnapshot(null), false)
+})
+
+test('six original exercises accelerate and stay within the seven-second round', () => {
+  assert.deepEqual(TEMPOS, [80, 90, 100, 110, 120, 130])
+  TEMPOS.forEach((_, r) => assert.ok(noteTime(r, 3) + 350 < TRAINING_MS))
+})
+test('wrong lanes consume their note; invalid indices and timing never count', () => {
+  const wrong = recordNote(0, 0, 2, 1, 2000, 2000)
+  assert.equal(hitCount(wrong), 0)
+  assert.equal(recordNote(wrong, 0, 1, 1, 2000, 2000), wrong)
+  assert.equal(recordNote(0, 0, 1, 1, 1819, 2000), 0)
+  assert.equal(recordNote(0, 0, 1, 1, 2351, 2000), 0)
+  assert.equal(recordNote(0, 4, 1, 1, 2000, 2000), 0)
+  assert.equal(recordNote(0, 0, 1, 1, NaN, 2000), 0)
+})
+test('duel notes add at most four damage and do not replace the selected card', () => {
+  let s = trained(false)
+  s = send(s, 'a', { kind: 'card', value: 'attack' })
+  for (let index = 0; index < 4; index++) for (const id of ['a', 'b']) s = send(s, id, { kind: 'note', index, value: cueFor(s, id, index) }, s.since + noteTime(0, index, true))
+  assert.equal(s.choices.a, 'attack')
+  assert.deepEqual(publicSnapshot(s).choices, {})
+  s = advance(s, s.since + TURN_MS)
+  assert.equal(s.crews[1].hp, 83)
+})
+test('card phase locks at 3.5 seconds, before the first duel note', () => {
+  const s = trained(false)
+  assert.equal(send(s, 'a', { kind: 'card', value: 'attack' }, s.since + 3500), s)
 })

@@ -1,6 +1,6 @@
 # Affinity Arena — development branch
 
-This branch contains the music-affinity evolution of Signal Grove: two real-player crews rehearse together, earn bounded resources and duel using four cards. Includes K-pop, Brazilian Funk, Latin Urban, Afrobeats, Hip-hop and Electronic with equal mechanics. The original Signal Grove source and main branch are preserved.
+This branch contains the music-affinity evolution of Signal Grove: two real-player crews hit C/E/G notes together, earn bounded resources and duel with four musical cards plus rhythm bonuses. Six original synthesized exercises rise from 80 to 130 BPM; no commercial recording is used. Includes K-pop, Brazilian Funk, Latin Urban, Afrobeats, Hip-hop and Electronic with equal mechanics. The original Signal Grove source and main branch are preserved. Audio provenance and its reproducible generator are included.
 
 Read [the current arena rules and limitations](decentraland/AFFINITY-ARENA.md). Automated tests and compilation are source evidence only. **No public World deployment, real four-client/phone QA, demo video or hackathon submission is claimed.** The peer-coordinated prototype has no economic rewards and is not cheat-proof.
 
