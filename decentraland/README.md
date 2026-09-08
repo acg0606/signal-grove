@@ -1,4 +1,8 @@
-# Signal Grove — Decentraland scene
+# Affinity Arena — Decentraland scene
+
+On this development branch, `src/index.ts` runs Affinity Arena. Read [AFFINITY-ARENA.md](AFFINITY-ARENA.md) for current mechanics, setup and limitations. The older Signal Grove scene remains in `src/scene.tsx`. The following sections document that earlier concept, not the active arena. Public source is not a public World or a submission receipt.
+
+## Earlier Signal Grove description
 
 Native SDK 7.27.0 scene, added September 6, 2026. The older web mechanic prototype in the parent directory is a separate, scripted replay.
 

@@ -1,7 +1,7 @@
 {
   "display": {
-    "title": "Signal Grove",
-    "description": "A small cooperative grove. Real visitors choose Listen, Invite or Build; different roles make a shared bloom grow."
+    "title": "Affinity Arena",
+    "description": "Find your music crew. Rehearse together to earn energy and shield, then face off in a short team card duel."
   },
   "main": "bin/index.js",
   "runtimeVersion": "7",

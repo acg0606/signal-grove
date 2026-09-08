@@ -1,15 +1,16 @@
 {
-  "name": "signal-grove-decentraland",
-  "version": "0.3.0",
+  "name": "affinity-arena-decentraland",
+  "version": "0.4.0",
   "private": true,
   "license": "MIT",
   "scripts": {
     "build": "sdk-commands build --skip-install",
     "build:production": "sdk-commands build --skip-install --production",
+    "deploy:world": "node --use-system-ca ./node_modules/@dcl/sdk-commands/dist/index.js deploy --target-content https://worlds-content-server.decentraland.org --multi-scene --no-browser --port 8000",
     "start": "node scripts/start-local-preview.mjs",
     "start:local": "node scripts/start-local-preview.mjs",
     "check": "tsc --noEmit",
-    "test": "tsx --test tests/room.test.ts tests/presentation.test.ts tests/linker-auth.test.cjs"
+    "test": "tsx --test tests/room.test.ts tests/presentation.test.ts tests/arena.test.ts tests/arena-session.test.ts tests/arena-layout.test.ts tests/linker-auth.test.cjs"
   },
   "dependencies": {
     "@dcl/sdk": "7.27.0",

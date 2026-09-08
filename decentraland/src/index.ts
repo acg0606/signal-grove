@@ -1,1 +1,1 @@
-export { main } from './scene'
+export { main } from './arena-scene'
