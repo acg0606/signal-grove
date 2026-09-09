@@ -1,8 +1,8 @@
 # Affinity Arena — development branch
 
-This branch contains the music-affinity evolution of Signal Grove: two real-player crews hit C/E/G notes together, earn bounded resources and duel with four musical cards plus rhythm bonuses. Six original synthesized exercises rise from 80 to 130 BPM; no commercial recording is used. Includes K-pop, Brazilian Funk, Latin Urban, Afrobeats, Hip-hop and Electronic with equal mechanics. The original Signal Grove source and main branch are preserved. Audio provenance and its reproducible generator are included.
+This branch contains the music-affinity evolution of Signal Grove: choose a crew, rehearse C/E/G notes in a themed studio, then compete on a neon main stage where live performance counts twice. Includes K-pop, Brazilian Funk, Latin Urban, Afrobeats, Hip-hop and Electronic with equal mechanics. A 20-second queue fills empty seats with explicitly labeled simulated performers. Six original synthesized exercises rise from 80 to 130 BPM; no commercial recording is used. The original Signal Grove source and main branch are preserved.
 
-Read [the current arena rules and limitations](decentraland/AFFINITY-ARENA.md). Version 0.6 adds solo warm-up, onboarding tabs, explicit crew/phase feedback, reduced decorative motion and change-gated stage updates. Automated tests and compilation are source evidence only. The earlier v0.5 has a server-accepted World deployment; this does not establish public gameplay acceptance or v0.6 deployment. **Real four-client/phone QA, public demo video and hackathon submission remain pending.** The peer-coordinated prototype has no economic rewards and is not cheat-proof.
+Read [the current arena rules and limitations](decentraland/AFFINITY-ARENA.md) and [v0.7 verification report](docs/AFFINITY-ARENA-V07-QUALITY.md). Version 0.7 replaces the forest/card duel with an enclosed four-parcel club, six illustrated studio identities, larger density-aware controls, four performance attributes and an NPC victory celebration. Typecheck, 84 automated tests and production build pass; simulated clients are not real-device acceptance. The World still serves v0.5; the v0.7 World update, physical-phone and real-participant QA, public video and X announcement remain pending. DoraHacks BUIDL 48375 was observed submitted and Under Review on September 9, 2026. The peer-coordinated prototype has no economic rewards and is not cheat-proof.
 
 ## Earlier Signal Grove overview
 
@@ -31,8 +31,8 @@ World; no borrowed World or private support transcript is included here.
 
 The files at the repository root are the earlier standalone web prototype.
 Its scripted companions illustrate the initial concept; they do not establish
-multiplayer integration. The actual SDK scene lives in `decentraland/` and has
-no simulated player companions.
+multiplayer integration. The actual SDK scene lives in `decentraland/`. Unlike
+the historical Signal Grove scene, v0.7 includes explicitly labeled exhibition bots.
 
 To run the earlier web prototype with Node.js 20 or newer:
 

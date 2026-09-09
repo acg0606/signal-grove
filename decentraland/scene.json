@@ -1,13 +1,57 @@
 {
   "display": {
     "title": "Affinity Arena",
-    "description": "Find your music crew. Hit original rhythm exercises together, earn energy and shield, then face off with musical cards."
+    "description": "Six neon music studios. Rehearse together, then own the main stage: live performance counts double. Solo visitors can play an explicitly labeled bot exhibition.",
+    "navmapThumbnail": "assets/images/crew-atlas-v07.png"
   },
   "main": "bin/index.js",
   "runtimeVersion": "7",
-  "scene": { "parcels": ["0,0"], "base": "0,0" },
-  "spawnPoints": [{ "name": "arena entrance", "default": true, "position": { "x": 8, "y": 1, "z": 2 }, "cameraTarget": { "x": 8, "y": 1.5, "z": 8 } }],
+  "worldConfiguration": {
+    "name": "mitthie.dcl.eth"
+  },
+  "scene": {
+    "base": "0,0",
+    "parcels": [
+      "0,0",
+      "1,0",
+      "0,1",
+      "1,1"
+    ]
+  },
+  "spawnPoints": [
+    {
+      "name": "arena entrance",
+      "default": true,
+      "position": {
+        "x": 16,
+        "y": 1,
+        "z": 4
+      },
+      "cameraTarget": {
+        "x": 16,
+        "y": 1.5,
+        "z": 27
+      }
+    }
+  ],
   "requiredPermissions": [],
-  "featureToggles": { "voiceChat": "enabled", "portableExperiences": "enabled" },
-  "skyboxConfig": { "fixedTime": 36000 }
+  "featureToggles": {
+    "voiceChat": "enabled",
+    "portableExperiences": "enabled",
+    "nearbyVoiceChat": "enabled"
+  },
+  "skyboxConfig": {
+    "fixedTime": 0
+  },
+  "creator": "",
+  "contact": {
+    "name": "",
+    "email": ""
+  },
+  "tags": [],
+  "landscapeTerrain": false,
+  "source": {
+    "origin": "creator-hub",
+    "projectId": "126fa455-0d87-412e-9675-adaa2c346d3b"
+  }
 }
