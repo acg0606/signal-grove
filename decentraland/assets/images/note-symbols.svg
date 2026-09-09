@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="128" viewBox="0 0 384 128">
+  <metadata>Original geometric musical icon family for Affinity Arena 0.8. Quarter note, flagged note, paired notes. Authored SVG; not a generated gameplay image.</metadata>
+  <g fill="#ff75c2" stroke="#ff75c2" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="47" cy="88" rx="19" ry="13" transform="rotate(-22 47 88)" stroke="none"/><path d="M64 84V24" fill="none"/>
+  </g>
+  <g fill="#c2ff38" stroke="#c2ff38" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="175" cy="88" rx="19" ry="13" transform="rotate(-22 175 88)" stroke="none"/><path d="M192 84V24C194 39 219 34 210 57" fill="none"/>
+  </g>
+  <g fill="#38e6ff" stroke="#38e6ff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="289" cy="91" rx="15" ry="11" transform="rotate(-22 289 91)" stroke="none"/><ellipse cx="337" cy="79" rx="15" ry="11" transform="rotate(-22 337 79)" stroke="none"/>
+    <path d="M302 87V35L350 23V75M302 46L350 34" fill="none"/>
+  </g>
+</svg>

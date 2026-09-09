@@ -1,7 +1,7 @@
 {
   "display": {
     "title": "Affinity Arena",
-    "description": "Six neon music studios. Rehearse together, then own the main stage: live performance counts double. Solo visitors can play an explicitly labeled bot exhibition.",
+    "description": "Walk to your music studio, tap an instrument and make the melody. Rehearse for 21 seconds, review your attributes, then walk to the live stage. Live performance counts double; solo sessions include labeled bots.",
     "navmapThumbnail": "assets/images/crew-atlas-v07.png"
   },
   "main": "bin/index.js",

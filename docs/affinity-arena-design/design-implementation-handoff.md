@@ -1,6 +1,10 @@
 # Affinity Arena implementation handoff
 
-## Current candidate: v0.7, September 9 UTC
+## Current candidate: v0.8, walk-up flow
+
+See `v08-surface-brief.md` and `../AFFINITY-ARENA-V08-QUALITY.md`. Preserve the neon venue; the initial full selector is removed. Real instruments open the session, 21-second training ends in an attribute recap, and stage readiness requires walking to a microphone. New musical icons and synthesized leads/errors support input. Every menu minimizes, and secondary actions expand from Menu. 88 automated tests and SDK build pass; native 0.8 acceptance and deployment remain HOLD. The existing 0.7 World receipt is historical evidence, not a receipt for this revision.
+
+## Historical v0.7 candidate, September 9 UTC
 
 The user-directed nightclub rebuild supersedes the historical sections below. Read `v07-surface-brief.md`, `../AFFINITY-ARENA-V07-QUALITY.md` and the current native `decentraland/DESIGN.md` contract. The active entrypoint is `concert-scene.tsx`: four parcels, six themed studios, density-aware controls, illustrated atlas, disclosed bot exhibition, scored rehearsal and live performance weighted 2x. Typecheck, 84 automated tests and production build pass; native/mobile and World-update acceptance remain pending. The current sidecar documents native source only, without fabricated HTML specimens. The old no-raster statement below applies only to v0.5. BUIDL 48375 is already submitted and Under Review; do not repeat submission.
 

@@ -1,4 +1,4 @@
-import { engine, Entity, Transform, MeshRenderer, MeshCollider, Material, TextShape } from '@dcl/sdk/ecs'
+import { engine, Entity, Transform, MeshRenderer, MeshCollider, Material, TextShape, pointerEventsSystem, InputAction } from '@dcl/sdk/ecs'
 import { Color4, Vector3, Quaternion } from '@dcl/sdk/math'
 import { GENRES, GENRE_NAMES, type Genre, type Arena, total } from './concert'
 import { CONCERT_RGB } from './concert-layout'
@@ -38,17 +38,22 @@ function speaker(x: number, y: number, z: number, c: Color4, size = 1) {
   box(x, y + 2.02 * size, z - .43 * size, .8 * size, .08, .04, c)
 }
 function keyboard(x: number, z: number, c: Color4) {
-  box(x, 1.2, z, 2.3, .2, .75, c)
+  const e = box(x, 1.2, z, 2.3, .2, .75, c)
   for (let k = 0; k < 12; k++) box(x - 1.04 + k * .19, 1.32, z - .12, .16, .04, .4, k % 3 === 0 ? ink : white)
   for (const dx of [-.8, .8]) box(x + dx, .65, z, .09, 1.1, .1, white)
+  return e
 }
 function drum(x: number, z: number, c: Color4) {
-  sphere(x, .85, z, .9, 1.3, .9, c); sphere(x, 1.45, z, .95, .1, .95, white)
+  const e = sphere(x, .85, z, .9, 1.3, .9, c); sphere(x, 1.45, z, .95, .1, .95, white); return e
 }
 const crowd: { body: Entity; sign: Entity; icon: Entity; x: number; y: number; z: number }[] = []
 const bars: Entity[] = []
 let board: Entity, lastBoard = '', lastWinner = '', lastFrame = -1
-export function buildClub() {
+export function buildClub(onStudio: (g: Genre) => void = () => {}, onStage: () => void = () => {}) {
+  function interact(e: Entity, title: string, action: () => void) {
+    MeshCollider.setBox(e)
+    pointerEventsSystem.onPointerDown({ entity: e, opts: { button: InputAction.IA_POINTER, hoverText: title, maxDistance: 5 } }, action)
+  }
   box(16, -.06, 16, 31.8, .12, 31.8, ink, true)
   // An enclosed club, not decorative landscape: no trees or surrounding terrain.
   for (const x of [.15, 31.85]) box(x, 4.5, 16, .3, 9, 31.8, color('panel'), true)
@@ -72,17 +77,20 @@ export function buildClub() {
     sign(p.x, 3.85, p.z + 2.8, subtitles[i], .8)
     speaker(p.x - 3.1, .2, p.z + 2.2, c, .7)
     speaker(p.x + 3.1, .2, p.z + 2.2, c, .7)
-    if (g === 'electronic') keyboard(p.x, p.z + 1.3, c)
-    else if (g === 'afrobeats') { drum(p.x - .7, p.z + 1.5, c); drum(p.x + .7, p.z + 1.5, c) }
+    let instrument: Entity
+    if (g === 'electronic') instrument = keyboard(p.x, p.z + 1.3, c)
+    else if (g === 'afrobeats') { instrument = drum(p.x - .7, p.z + 1.5, c); const second = drum(p.x + .7, p.z + 1.5, c); interact(second, 'Play ' + GENRE_NAMES[g] + ' · sound on', () => onStudio(g)) }
     else if (g === 'hiphop') {
-      box(p.x, 1.1, p.z + 1.4, 2.5, .2, .9, c)
+      instrument = box(p.x, 1.1, p.z + 1.4, 2.5, .2, .9, c)
       for (const dx of [-.65, .65]) sphere(p.x + dx, 1.22, p.z + 1.4, .9, .035, .9, ink)
-    } else if (g === 'funk') speaker(p.x, .2, p.z + 1.6, c, 1)
+    } else if (g === 'funk') { speaker(p.x, .2, p.z + 1.6, c, 1); instrument = keyboard(p.x, p.z + .4, c) }
     else {
       box(p.x, 1, p.z + 1, .07, 1.7, .07, white)
-      sphere(p.x, 1.88, p.z + 1, .24, .38, .24, c)
+      instrument = sphere(p.x, 1.88, p.z + 1, .35, .48, .35, c)
       if (g === 'kpop') { sphere(p.x - .15, 2.2, p.z + 1, .4, .4, .15, c); sphere(p.x + .15, 2.2, p.z + 1, .4, .4, .15, c); box(p.x, 2.04, p.z + 1, .43, .43, .1, c, false, 45) }
     }
+    interact(instrument!, 'Play ' + GENRE_NAMES[g] + ' · sound on', () => onStudio(g))
+    sign(p.x, 2.7, p.z + .9, 'TAP THE INSTRUMENT\n21-SECOND REHEARSAL', .65)
   })
   // Broad main stage with two performer positions and a central catwalk.
   box(16, .35, 27.5, 16, .7, 7, color('panel'), true)
@@ -99,7 +107,12 @@ export function buildClub() {
   box(16, 5.4, 30.88, 12.4, 3.4, .12, ink)
   board = sign(16, 5.6, 30.7, 'THE MAIN STAGE\nLIVE PERFORMANCE COUNTS 2x', 2.2)
   sign(16, 3.6, 30.7, 'RHYTHM / PRECISION / HARMONY / CONSISTENCY', 1.05, color('electronic'))
-  for (const x of [12, 20]) { box(x, 1.5, 27, .08, 1.5, .08, white); sphere(x, 2.3, 27, .24, .35, .24, color(x === 12 ? 'kpop' : 'electronic')) }
+  for (const x of [12, 20]) { box(x, 1.5, 27, .08, 1.5, .08, white); const mic = sphere(x, 2.3, 27, .4, .5, .4, color(x === 12 ? 'kpop' : 'electronic')); interact(mic, 'Ready for the live show', onStage) }
+  // Walkable low steps instead of automatically teleporting a performer.
+  box(16, .08, 19.9, 3.5, .16, .9, color('panel'), true)
+  box(16, .16, 20.7, 3.5, .32, .8, color('panel'), true)
+  box(16, .27, 24.1, 3.5, .54, .7, color('panel'), true)
+  sign(16, 2.9, 24, 'AFTER REHEARSAL\nWALK UP AND TAP A MICROPHONE', .9)
   for (let i = 0; i < 14; i++) bars.push(box(9.5 + i, 2.8, 30.4, .38, .6, .1, color(GENRES[i % 6])))
   // Clearly stylized NPC audience; never added to the room's real-player roster.
   for (let row = 0; row < 3; row++) for (let col = 0; col < 6; col++) {
@@ -114,7 +127,7 @@ export function buildClub() {
   sign(16, 2.5, 13.8, 'NPC FAN ZONE\nTHE CROWD CELEBRATES THE SCORE', .8)
 }
 export function refreshClub(s: Arena, now: number, reduced: boolean) {
-  const text = s.phase === 'lobby' ? 'THE MAIN STAGE\nLIVE PERFORMANCE COUNTS 2x' : s.phase === 'training' ? 'STUDIO REHEARSAL\nBUILD YOUR CREW ATTRIBUTES' : s.phase === 'battle' ? `LIVE SHOW ${s.round + 1}/5\nEVERY NOTE COUNTS DOUBLE` : s.winner === 'draw' ? 'TWO CREWS. ONE RHYTHM.\nDRAW — BOTH CREWS CELEBRATE' : s.winner ? `${GENRE_NAMES[s.winner].toUpperCase()} WINS!\n${s.crews.map(c => `${GENRE_NAMES[c.genre]} ${total(c.final).toFixed(1)}`).join(' | ')}` : 'SHOW CANCELLED\nNO WINNER AWARDED'
+  const text = s.phase === 'lobby' ? 'THE MAIN STAGE\nLIVE PERFORMANCE COUNTS 2x' : s.phase === 'training' ? 'STUDIO REHEARSAL\nBUILD YOUR CREW ATTRIBUTES' : s.phase === 'intermission' ? 'YOUR MOMENT IS NEXT\nWALK UP AND TAP A MICROPHONE' : s.phase === 'battle' ? `LIVE SHOW ${s.round + 1}/5\nEVERY NOTE COUNTS DOUBLE` : s.winner === 'draw' ? 'TWO CREWS. ONE RHYTHM.\nDRAW — BOTH CREWS CELEBRATE' : s.winner ? `${GENRE_NAMES[s.winner].toUpperCase()} WINS!\n${s.crews.map(c => `${GENRE_NAMES[c.genre]} ${total(c.final).toFixed(1)}`).join(' | ')}` : 'SHOW CANCELLED\nNO WINNER AWARDED'
   if (text !== lastBoard) { TextShape.getMutable(board).text = text; lastBoard = text }
   const winner = s.phase === 'result' ? s.winner ?? '' : ''
   if (winner !== lastWinner) {

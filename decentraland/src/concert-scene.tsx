@@ -1,189 +1,222 @@
 import { engine, Entity, Transform, UiCanvasInformation, AudioSource, inputSystem, InputAction, PointerEventType } from '@dcl/sdk/ecs'
-import { Vector3 } from '@dcl/sdk/math'
+import { Vector3, Color4 } from '@dcl/sdk/math'
 import { MessageBus } from '@dcl/sdk/message-bus'
 import { getPlayer } from '@dcl/sdk/src/players'
-import { movePlayerTo } from '~system/RestrictedActions'
 import ReactEcs, { ReactEcsRenderer, UiEntity, Label, Button } from '@dcl/sdk/react-ecs'
 import { ConcertSession, CHANNEL } from './concert-session'
-import { GENRES, GENRE_NAMES, ATTRIBUTES, QUEUE_MS, cueFor, total, type Genre, type Command } from './concert'
+import { GENRE_NAMES, ATTRIBUTES, QUEUE_MS, INTERMISSION_MS, TRAINING_ROUNDS, RESULT_MS, cueFor, total, type Genre, type Command } from './concert'
 import { concertLayout } from './concert-layout'
-import { buildClub, refreshClub, studioPosition, color, crewUV, ATLAS } from './concert-world'
-import { NOTE_NAMES, noteTime, tempo, TRACKS, EARLY_MS, LATE_MS } from './rhythm'
-import { Warmup } from './arena-experience'
+import { buildClub, refreshClub, color } from './concert-world'
+import { NOTE_NAMES, noteTime, tempo, EARLY_MS, LATE_MS } from './rhythm'
 
+type View = 'none' | 'guide' | 'options' | 'play' | 'summary' | 'result'
 const bus = new MessageBus(), ink = color('ink'), white = color('white'), muted = color('muted'), cyan = color('electronic')
+const NOTE_ATLAS = 'assets/images/note-symbols.png'
 let session: ConcertSession | null = null, clock = Date.now(), delta = 0
-let sound = false, reduced = false, large = false, hidden = false, guide = false, page = 0, scorePage = 0
-let practice: Warmup | null = null, entered = '', phaseKey = '', played = 0, feedback = 'Tap at the white strike line.'
-let soundEntity: Entity, resultEntity: Entity, audioKey = '', resultKey = '', moveNotice = ''
+let view: View = 'none', entered = '', phaseKey = '', stageSeen = '', intro = true, changedAt = 0
+let sound = false, soundPreferenceSet = false, reduced = false, large = false, feedback = '', scale = 1, scorePage = 0
+let attempted = 0, expired = 0, flashLane = -1, flashUntil = 0, flashHit = false, lastMistake = -Infinity
 let intent: { index: number; lane: number; phase: string } | null = null
-let scale = 1
+let bed: Entity, errorVoice: Entity, resultVoice: Entity, voices: Entity[] = [], audioKey = '', resultKey = ''
 const px = (n: number) => n * scale
 const key = () => session ? `${session.state.match}/${session.state.phase}/${session.state.round}` : ''
+const active = () => !!session && ['training', 'battle'].includes(session.state.phase) && session.state.players.some(p => p.id === session!.id)
+function open(v: View) { view = v; changedAt = clock; if (v !== 'none') intro = false }
 function flush() { if (session) for (const p of session.drain()) bus.emit(CHANNEL, p) }
-function command(c: Command) { if (!session) return; session.command(c, Date.now()); flush() }
-function travel(x: number, y: number, z: number, targetZ: number) {
-  moveNotice = ''
-  void movePlayerTo({ newRelativePosition: Vector3.create(x, y, z), cameraTarget: Vector3.create(x, 2.3, targetZ) }).then(r => {
-    if (!r.success) moveNotice = 'Auto-move unavailable. Follow the studio / stage signs.'
-  }).catch(() => { moveNotice = 'Auto-move unavailable. Follow the studio / stage signs.' })
+function command(c: Command) { if (session) { session.command(c, Date.now()); flush() } }
+function choose(g: Genre) {
+  if (!session) { feedback = 'Connecting your identity. Try the instrument again.'; return }
+  const me = session.state.players.find(p => p.id === session!.id)
+  if (me) {
+    if (me.genre === g) open(session.state.phase === 'intermission' ? 'summary' : session.state.phase === 'result' ? 'result' : 'play')
+    else feedback = 'You already joined a crew. Leave this session before switching.'
+    return
+  }
+  if (session.state.phase !== 'lobby') { feedback = 'A show is running. Explore, then join the next one.'; return }
+  if (!soundPreferenceSet) sound = true
+  audioKey = ''; intro = false
+  command({ kind: 'join', genre: g }); open('play')
 }
-function choose(g: Genre) { command({ kind: 'join', genre: g }); guide = false; hidden = false }
-function tap(lane: number) {
+function stage() {
   if (!session) return
-  const s = session.state
-  if (practice && s.phase === 'lobby') { practice.tap(lane, Date.now()); feedback = practice.feedback.replace(/gold/g, 'white'); return }
-  if (!['training', 'battle'].includes(s.phase) || !s.players.some(p => p.id === session!.id)) return
-  const age = Date.now() + session.offset - s.since
-  const available = [0, 1, 2, 3].filter(i => !(played & (1 << i)) && age >= noteTime(s.round, i, s.phase === 'battle') - EARLY_MS && age <= noteTime(s.round, i, s.phase === 'battle') + LATE_MS)
-  available.sort((a, b) => Math.abs(age - noteTime(s.round, a, s.phase === 'battle')) - Math.abs(age - noteTime(s.round, b, s.phase === 'battle')))
-  if (!available.length) { feedback = 'Wait for the white strike line.'; return }
-  intent = { index: available[0], lane, phase: key() }
-  command({ kind: 'note', index: available[0], value: lane })
+  const s = session.state, me = s.players.find(p => p.id === session!.id)
+  if (!me || s.phase === 'lobby' || s.phase === 'training') { feedback = 'Rehearse at a studio instrument first.'; return }
+  if (s.phase === 'intermission') {
+    // Scene interaction is local UX gating, not a cheat-proof location attestation.
+    const p = getPlayer()?.position
+    if (!p || Math.min((p.x-12)**2+(p.z-27)**2,(p.x-20)**2+(p.z-27)**2)>36) { feedback = 'Walk closer to a stage microphone.'; return }
+    command({ kind: 'ready' }); feedback = 'Ready on stage. Waiting for the other performers.'; open('summary')
+  } else if (s.phase === 'battle') open('play')
 }
-function line(value: string, height = 28, size = 18, c = white) {
-  return <Label value={value} fontSize={px(size)} color={c} textAlign="middle-left" uiTransform={{ width: '100%', height: px(height), flexShrink: 0 }} />
+function playClip(entity: Entity, file: string, volume: number) {
+  if (sound) AudioSource.createOrReplace(entity, { audioClipUrl: file, playing: true, loop: false, global: true, volume, currentTime: 0 })
 }
-function button(value: string, action: () => void, width: number | `${number}%` = '100%', active = true, c = cyan, height = 56) {
-  return <Button value={value} fontSize={px(18)} color={active ? ink : muted}
-    uiTransform={{ width: typeof width === 'number' ? px(width) : width, height: px(height), flexShrink: 0, borderWidth: active ? 0 : px(1), borderColor: muted }}
-    uiBackground={{ color: active ? c : color('panel') }} onMouseDown={() => { if (active) action() }} />
+function mistake() {
+  if (clock - lastMistake < 180) return
+  lastMistake = clock
+  playClip(errorVoice, 'assets/sounds/mistake.wav', .5)
 }
-function icon(g: Genre, size: number, action: () => void) {
-  return <UiEntity uiTransform={{ width: px(size), height: px(size), flexShrink: 0 }} uiBackground={{ textureMode: 'stretch', texture: { src: ATLAS }, uvs: crewUV(g) }} onMouseDown={action} />
+function tap(lane: number) {
+  if (!session || !active()) return
+  const s = session.state, age = Date.now() + session.offset - s.since
+  const available = [0,1,2,3].filter(i => !(attempted & (1<<i)) && age >= noteTime(s.round,i,s.phase==='battle')-EARLY_MS && age <= noteTime(s.round,i,s.phase==='battle')+LATE_MS)
+  available.sort((a,b)=>Math.abs(age-noteTime(s.round,a,s.phase==='battle'))-Math.abs(age-noteTime(s.round,b,s.phase==='battle')))
+  if (!available.length) { feedback = 'Not yet — meet the white line.'; mistake(); return }
+  const i = available[0], hit = lane === cueFor(s,session.id,i)
+  attempted |= 1<<i; flashLane = lane; flashHit = hit; flashUntil = clock+220
+  // Immediate local musical response; score remains coordinator-confirmed.
+  if (hit) playClip(voices[lane], `assets/sounds/lead-${lane}.wav`, .75)
+  else mistake()
+  feedback = hit ? 'On beat — melody continues!' : 'Wrong note — catch the next one.'
+  intent = {index:i,lane,phase:key()}; command({kind:'note',index:i,value:lane})
 }
-function crewTile(g: Genre, height: number) {
-  const s = session!.state, count = s.players.filter(p => p.genre === g).length
-  const enabled = s.phase === 'lobby' && count < 2 && (new Set(s.players.map(p => p.genre)).size < 2 || count > 0)
-  const title = g === 'funk' ? 'Brazilian\nFunk' : GENRE_NAMES[g]
-  return <UiEntity key={g} uiTransform={{ width: '49%', height: px(height), flexDirection: 'row', alignItems: 'center', padding: px(6) }} uiBackground={{ color: color('panel') }}>
-    {icon(g, height - 18, () => { if (enabled) choose(g) })}
-    <UiEntity uiTransform={{ flexDirection: 'column', flexGrow: 1, height: px(height - 10) }}>
-      <Button value={title} fontSize={px(18)} color={enabled ? color(g) : muted} uiTransform={{ width: '100%', height: px(height - 38) }} uiBackground={{ color: color('panel') }} onMouseDown={() => { if (enabled) choose(g) }} />
-      <Label value={enabled ? `Enter studio · ${count}/2` : 'Crew full'} fontSize={px(14)} color={white} uiTransform={{ width: '100%', height: px(24) }} />
-    </UiEntity>
-  </UiEntity>
+function line(value: string, height=28, size=18, c=white) {
+  return <Label value={value} fontSize={px(size)} color={c} textAlign="middle-left" uiTransform={{width:'100%',height:px(height),flexShrink:0}} />
 }
-function instrument(height: number, age: number, round: number, lobby: boolean) {
-  const s = session!.state, h = Math.max(60, height - 68), mask = lobby ? practice?.mask ?? 0 : played
-  const active = lobby ? !!practice : s.players.some(p => p.id === session!.id)
-  return <UiEntity uiTransform={{ width: '100%', height: px(height), flexDirection: 'column', flexShrink: 0 }}>
-    <UiEntity uiTransform={{ width: '100%', height: px(h), positionType: 'relative', flexShrink: 0 }} uiBackground={{ color: color('panel') }}>
-      {[0, 1, 2].map(l => <UiEntity key={`track-${l}`} uiTransform={{ positionType: 'absolute', position: { left: `${l * 33.33}%`, top: 0 }, width: '32%', height: '100%', borderWidth: px(1), borderColor: color(['kpop', 'funk', 'electronic'][l] as Genre) }} />)}
-      <UiEntity uiTransform={{ positionType: 'absolute', position: { left: 0, top: px(h - 18) }, width: '100%', height: px(4) }} uiBackground={{ color: white }} />
-      {[0, 1, 2, 3].map(i => {
-        const target = noteTime(round, i, !lobby && s.phase === 'battle'), wait = target - age
-        const lane = lobby ? practice!.lane(i) : cueFor(s, session!.id, i)
-        const y = Math.max(0, Math.min(h - 28, h - 18 - wait / 1700 * (h - 18) - 14))
-        return active && wait <= 1700 && wait >= -LATE_MS && !(mask & (1 << i)) ? <UiEntity key={`note-${i}`} uiTransform={{ positionType: 'absolute', position: { left: `${lane * 33.33 + 3}%`, top: px(y) }, width: '26%', height: px(28) }} uiBackground={{ color: color(['kpop', 'funk', 'electronic'][lane] as Genre) }}><Label value={NOTE_NAMES[lane]} fontSize={px(22)} color={ink} uiTransform={{ width: '100%', height: px(28) }} /></UiEntity> : null
+function button(value:string, action:()=>void, width:number|`${number}%`='100%', height=46, primary=false) {
+  return <Button value={value} fontSize={px(17)} color={primary?ink:white} uiTransform={{width:typeof width==='number'?px(width):width,height:px(height),flexShrink:0}}
+    uiBackground={{color:primary?cyan:Color4.create(.08,.045,.15,.94)}} onMouseDown={action} />
+}
+function noteIcon(lane:number,size:number) {
+  const x=lane/3
+  return <UiEntity uiTransform={{width:px(size),height:px(size),flexShrink:0}} uiBackground={{textureMode:'stretch',texture:{src:NOTE_ATLAS},uvs:[x,0,x,1,x+1/3,1,x+1/3,0]}} />
+}
+function instrument(height:number) {
+  const s=session!.state, age=clock+session!.offset-s.since, field=height-76, enabled=active()
+  return <UiEntity uiTransform={{width:'100%',height:px(height),flexDirection:'column',flexShrink:0}}>
+    <UiEntity uiTransform={{width:'100%',height:px(field),positionType:'relative',flexShrink:0}}>
+      {[0,1,2].map(l=><UiEntity key={l} uiTransform={{positionType:'absolute',position:{left:`${l*33.33+16}%`,top:0},width:px(1),height:'100%'}} uiBackground={{color:Color4.create(.8,.85,1,.22)}} />)}
+      <UiEntity uiTransform={{positionType:'absolute',position:{left:'4%',top:px(field-22)},width:'92%',height:px(3)}} uiBackground={{color:white}} />
+      {[0,1,2,3].map(i=>{
+        const wait=noteTime(s.round,i,s.phase==='battle')-age,lane=cueFor(s,session!.id,i)
+        const y=Math.min(field-52,Math.max(0,field-58-wait/1700*(field-58)))
+        return enabled && wait<=1700 && wait>=-LATE_MS && !(attempted&(1<<i)) ?
+          <UiEntity key={i} uiTransform={{positionType:'absolute',position:{left:`${lane*33.33}%`,top:px(y)},width:'33.33%',height:px(52),justifyContent:'center'}}>{noteIcon(lane,52)}</UiEntity>:null
       })}
     </UiEntity>
-    <UiEntity uiTransform={{ width: '100%', height: px(68), justifyContent: 'space-between', flexShrink: 0 }}>
-      {NOTE_NAMES.map((n, i) => <Button key={n} value={`${n}   ${i + 1}`} fontSize={px(28)} color={ink} uiTransform={{ width: '32%', height: px(64) }} uiBackground={{ color: color(['kpop', 'funk', 'electronic'][i] as Genre) }} onMouseDown={() => tap(i)} />)}
+    <UiEntity uiTransform={{width:'100%',height:px(76),justifyContent:'space-between',flexShrink:0}}>
+      {NOTE_NAMES.map((n,i)=><UiEntity key={n} uiTransform={{width:'32%',height:px(72),flexDirection:'column',alignItems:'center'}} uiBackground={{color:flashLane===i&&clock<flashUntil?Color4.create(flashHit?.12:.45,.15,.25,.9):Color4.create(.08,.045,.15,.75)}} onMouseDown={()=>tap(i)}>
+        {noteIcon(i,44)}<Label value={`${n} · ${i+1}`} fontSize={px(18)} color={white} uiTransform={{width:'100%',height:px(24)}} />
+      </UiEntity>)}
     </UiEntity>
   </UiEntity>
 }
 function ui() {
-  const c = UiCanvasInformation.getOrNull(engine.RootEntity), inset = c?.interactableArea
-  const l = concertLayout(c?.width ?? 800, c?.height ?? 600, c?.devicePixelRatio ?? 1, inset?.left, inset?.right, inset?.top, inset?.bottom, large)
-  scale = l.scale
-  const s = session?.state, me = s?.players.find(p => p.id === session?.id), compact = l.compact
-  const height = Math.min(l.height, compact ? 338 : 610), inner = height - 24
-  const age = s ? clock + (session?.offset ?? 0) - s.since : 0
-  const queue = s?.queueAt !== null && s?.queueAt !== undefined ? Math.max(0, Math.ceil((s.queueAt + QUEUE_MS - clock - (session?.offset ?? 0)) / 1000)) : 20
-  if (hidden) return <UiEntity uiTransform={{ positionType: 'absolute', position: { right: px(8), bottom: px(8) }, width: px(260), height: px(56) }}>{button('Open music controls', () => { hidden = false })}</UiEntity>
-  if (l.width < 290 || l.height < 320) return <UiEntity uiTransform={{ width: '95%', height: px(144), padding: px(8), flexDirection: 'column' }} uiBackground={{ color: ink }}>{line('Close chat / overlays or rotate your phone\nto make room for the instrument.', 72, 18)}{button('Reset UI size', () => { large = false }, '100%', true, cyan, 48)}</UiEntity>
-  const footer = <UiEntity uiTransform={{ width: '100%', height: px(44), justifyContent: 'space-between', flexShrink: 0 }}>
-    {button(sound ? 'Mute' : 'Sound on', () => { sound = !sound; audioKey = '' }, '32%', true, muted, 44)}
-    {s?.phase === 'result' && compact ? button(scorePage === 2 ? 'Totals' : 'Attributes', () => { scorePage = (scorePage + 1) % 3 }, '32%', true, muted, 44) : button(large ? 'Size: XL' : 'Larger UI', () => { large = !large }, '32%', true, muted, 44)}
-    {button('View club', () => { hidden = true }, '32%', true, muted, 44)}
+  const c=UiCanvasInformation.getOrNull(engine.RootEntity), inset=c?.interactableArea
+  const l=concertLayout(c?.width??800,c?.height??600,c?.devicePixelRatio??1,inset?.left,inset?.right,inset?.top,inset?.bottom,large)
+  scale=l.scale
+  const s=session?.state, me=s?.players.find(p=>p.id===session?.id), crew=s?.crews.find(c=>c.genre===me?.genre)
+  const age=s?clock+(session?.offset??0)-s.since:0
+  const caption=feedback || (!s?'Connecting…':me&&s.phase==='intermission'?'Walk to the stage. Tap a microphone.':me&&active()?'Show continues while minimized.':me?'Your crew is preparing.':'Walk to an instrument to join a music crew.')
+  const width=Math.min(l.width,420), panelHeight=Math.min(l.height,l.compact?330:444)
+  if (view==='none') return <UiEntity uiTransform={{positionType:'absolute',position:{right:px(8),bottom:px(8)},width:px(Math.min(width,360)),height:px(intro?134:100),padding:px(8),flexDirection:'column'}} uiBackground={{color:Color4.create(.025,.018,.065,.80)}}>
+    {intro&&line('AFFINITY ARENA · 0.8',28,19,cyan)}
+    {line(caption,34,15)}
+    <UiEntity uiTransform={{width:'100%',height:px(48),justifyContent:'space-between'}}>
+      {button(me?'Open session':'How to play',()=>open(me?s?.phase==='intermission'?'summary':s?.phase==='result'?'result':'play':'guide'),'66%',46)}
+      {button('Menu',()=>open('options'),'30%',46)}
+    </UiEntity>
   </UiEntity>
-  return <UiEntity uiTransform={{ positionType: 'absolute', position: { right: px(8), bottom: px(8) }, width: px(l.width), height: px(height), padding: px(12), flexDirection: 'column' }} uiBackground={{ color: ink }}>
-    {line('AFFINITY ARENA · 0.7', 32, compact ? 21 : 26, cyan)}
-    {!s ? line('Connecting your player identity…', 80) : !me && s.phase === 'lobby' ? <UiEntity uiTransform={{ width: '100%', height: px(inner - 76), flexDirection: 'column', flexShrink: 0 }}>
-      {guide ? <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
-        {line('STUDIO → LIVE SHOW → CROWD', 36, 20, cyan)}
-        {line('Tap C / E / G at the strike line.\nRehearse to build four attributes.\nThe main stage counts DOUBLE.\nHighest combined score wins.', compact ? 104 : 132, 18)}
-        {button(reduced ? 'Motion reduced' : 'Reduce motion', () => { reduced = !reduced }, '100%', true, muted, 44)}
-        {button('Choose my studio', () => { guide = false }, '100%', true, cyan, 44)}
-      </UiEntity> : <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
-        {line(session?.pending ? 'Joining studio… waiting for confirmation' : session?.notice && /No confirmation|Not accepted|Connection changed/.test(session.notice) ? 'Connection changed or crew full. Try again.' : 'Choose your music. Enter your studio.', 28, 17)}
-        {(compact ? [GENRES.slice(page * 2, page * 2 + 2)] : [GENRES.slice(0, 2), GENRES.slice(2, 4), GENRES.slice(4)]).map((row, i) => <UiEntity key={`crew-row-${i}`} uiTransform={{ width: '100%', height: px(compact ? 90 : 98), justifyContent: 'space-between', flexShrink: 0 }}>{row.map(g => crewTile(g, compact ? 86 : 92))}</UiEntity>)}
-        {compact && <UiEntity uiTransform={{ width: '100%', height: px(48), justifyContent: 'space-between' }}>{button('Previous', () => { page = (page + 2) % 3 }, '49%', true, muted, 44)}{button('More crews', () => { page = (page + 1) % 3 }, '49%', true, muted, 44)}</UiEntity>}
-        {line(session?.notice && /No confirmation|Not accepted|Connection changed/.test(session.notice) ? session.notice : '20s queue. Empty seats become labeled bots.', compact ? 24 : 42, compact ? 14 : 17, muted)}
-        {button('How to play', () => { guide = true }, '100%', true, cyan, 44)}
-      </UiEntity>}
-    </UiEntity> : me && s.phase === 'lobby' ? <UiEntity uiTransform={{ width: '100%', height: px(inner - 76), flexDirection: 'column', flexShrink: 0 }}>
-      {line(`${GENRE_NAMES[me.genre]} studio · start in ${queue}s`, 30, 20, color(me.genre))}
-      {!compact && line(`${s.players.length} real fan(s). Empty seats become BOTS.\nSoundcheck now; scored rehearsal begins after queue.`, 54, 17, muted)}
-      {practice && instrument(Math.max(128, inner - (compact ? 184 : 238)), practice.age(clock), practice.round, true)}
-      {line(feedback, 28, 16, cyan)}
-      {button('Leave queue', () => command({ kind: 'leave' }), '100%', true, muted, 44)}
-    </UiEntity> : s.phase === 'result' ? <UiEntity uiTransform={{ width: '100%', height: px(inner - 76), flexDirection: 'column', flexShrink: 0 }}>
-      {line(s.winner === 'draw' ? 'DRAW · Both crews shine!' : s.winner ? `${GENRE_NAMES[s.winner]} wins!` : 'Show cancelled', 34, 24, s.winner && s.winner !== 'draw' ? color(s.winner) : cyan)}
-      {line(s.mode === 'BOT_EXHIBITION' ? 'EXHIBITION · Includes simulated musicians' : 'HUMAN MATCH · Real participants', 24, 14, muted)}
-      {(!compact || scorePage === 0) && line('Final = (studio + 2 × live) ÷ 3', 28, 18)}
-      {s.crews.filter((_,i) => !compact || scorePage === 0 || i === scorePage - 1).map(crew => <UiEntity key={crew.genre} uiTransform={{ width: '100%', height: px(compact && scorePage === 0 ? 44 : 118), flexDirection: 'column' }}>
-        {line(`${GENRE_NAMES[crew.genre]} · ${total(crew.final).toFixed(1)} / 400`, 28, 20, color(crew.genre))}
-        {(!compact || scorePage > 0) && ATTRIBUTES.map(a => line(`${a.toUpperCase()}  ${crew.final[a].toFixed(1)}  (${crew.training[a].toFixed(0)} + 2×${crew.live[a].toFixed(0)})/3`, 21, 16))}
+  if(width<280||panelHeight<300) return <UiEntity uiTransform={{positionType:'absolute',position:{right:px(8),bottom:px(8)},width:'94%',height:px(150),flexDirection:'column'}} uiBackground={{color:ink}}>
+    {line('Rotate your phone or close platform overlays.',50,16)}
+    {button('Reset size',()=>{large=false},'100%',46)}{button('Minimize',()=>open('none'),'100%',46)}
+  </UiEntity>
+  const title=view==='guide'?'Your first show':view==='options'?'Session controls':view==='summary'?'Rehearsal complete':view==='result'?'Show results':me?GENRE_NAMES[me.genre]:'Your session'
+  const a=.80+(!reduced?Math.min(1,Math.max(0,(clock-changedAt)/180))*.12:.12)
+  return <UiEntity uiTransform={{positionType:'absolute',position:{right:px(8),bottom:px(8)},width:px(width),height:px(panelHeight),padding:px(12),flexDirection:'column'}} uiBackground={{color:Color4.create(.025,.018,.065,a)}}>
+    <UiEntity uiTransform={{width:'100%',height:px(48),justifyContent:'space-between',flexShrink:0}}>
+      <Label value={title} fontSize={px(20)} color={cyan} textAlign="middle-left" uiTransform={{width:'68%',height:px(44)}} />
+      {button('Minimize',()=>open('none'),'30%',44)}
+    </UiEntity>
+    {view==='guide'?<UiEntity uiTransform={{width:'100%',flexDirection:'column'}}>
+      {line('Walk. Play. Own the stage.',32,20)}
+      {line('Tap a studio instrument to join its crew.\nRehearse for 21 seconds: hit the musical\nicons at the white line. Correct notes\nplay the lead; missed notes break it.',92,16)}
+      {line('Review your attributes. Walk to a stage\nmicrophone and tap it when ready.\nLive performance counts twice.',70,16)}
+      {button('Explore the studios',()=>{feedback='Find your style. Tap its instrument.';open('none')},'100%',46,true)}
+    </UiEntity>:view==='options'?<UiEntity uiTransform={{width:'100%',flexDirection:'column'}}>
+      {button(sound?'Sound: on — mute':'Sound: off — enable',()=>{sound=!sound;soundPreferenceSet=true;audioKey=''},'100%',44)}
+      {button(large?'Size: XL':'Larger controls',()=>{large=!large},'100%',44)}
+      {button(reduced?'Motion: reduced':'Reduce motion',()=>{reduced=!reduced},'100%',44)}
+      {button('How to play',()=>open('guide'),'100%',44)}
+      {me&&s?.phase!=='result'&&button('Leave session',()=>{command({kind:'leave'});feedback='You left the session.';open('none')},'100%',44)}
+    </UiEntity>:view==='summary'&&s?<UiEntity uiTransform={{width:'100%',flexDirection:'column'}}>
+      {line(crew?`${GENRE_NAMES[crew.genre]} · ${total(crew.training).toFixed(0)} / 400`:'Waiting for your crew',28,19)}
+      {crew&&ATTRIBUTES.map(k=>line(`${k.toUpperCase()}    ${crew.training[k].toFixed(0)} / 100`,24,17))}
+      {line(me?.ready?'Ready. Waiting for other performers.':'Walk to the stage and tap a microphone.',32,15,muted)}
+      {line(`Stage check-in closes in ${Math.max(0,Math.ceil((INTERMISSION_MS-age)/1000))}s`,24,14,muted)}
+      {button('Walk to stage',()=>{feedback='Follow the catwalk. Tap a stage microphone.';open('none')},'100%',46,true)}
+    </UiEntity>:view==='result'&&s?<UiEntity uiTransform={{width:'100%',flexDirection:'column'}}>
+      {line(s.winner==='draw'?'Draw — both crews shine!':s.winner?`${GENRE_NAMES[s.winner]} wins!`:'Show cancelled — no winner',32,20)}
+      {line(s.mode==='BOT_EXHIBITION'?'Exhibition · includes simulated musicians':'Human crews',24,14,muted)}
+      {s.crews.filter((_,i)=>i===scorePage%s.crews.length).map(c=><UiEntity key={c.genre} uiTransform={{width:'100%',flexDirection:'column'}}>
+        {line(`${GENRE_NAMES[c.genre]} · ${total(c.final).toFixed(1)} / 400`,28,18,color(c.genre))}
+        {ATTRIBUTES.map(k=>line(`${k.toUpperCase()}    ${c.final[k].toFixed(1)}`,22,16))}
       </UiEntity>)}
-      {line(`Next show in ${Math.max(0, Math.ceil((24000 - age) / 1000))}s · NPC crowd celebrates scores`, 30, 14, muted)}
-    </UiEntity> : <UiEntity uiTransform={{ width: '100%', height: px(inner - 76), flexDirection: 'column', flexShrink: 0 }}>
-      {line(s.phase === 'training' ? `STUDIO ${s.round + 1}/6 · ${tempo(s.round)} BPM` : age < 4500 ? `TO THE STAGE · LIVE IN ${Math.max(1, Math.ceil((5000 - age) / 1000))}` : `LIVE SHOW ${s.round + 1}/5 · SCORE ×2`, 30, 20, cyan)}
-      {line(`${s.mode === 'BOT_EXHIBITION' ? 'BOTS · Exhibition' : 'REAL CREWS'}${!me ? ' · SPECTATING' : ''} · ${TRACKS[s.round]}`, 24, 14, muted)}
-      {!compact && line(s.crews.map(crew => `${GENRE_NAMES[crew.genre]} · ${s.phase === 'training' ? 'Studio' : 'Projected'} ${total(s.phase === 'training' ? crew.training : crew.final).toFixed(0)}/400`).join('\n'), 52, 18)}
-      {instrument(Math.max(128, inner - (compact ? 174 : 234)), age, s.round, false)}
-      {line(me ? feedback : 'Watch the crew. Join the next show.', 28, 16, cyan)}
-      {!compact && line(moveNotice || (s.phase === 'training' ? 'Rhythm · Precision · Harmony · Consistency' : 'All crew members play. The crowd follows the final score.'), 24, 14, muted)}
+      {line('Final = (studio + 2 × live) ÷ 3',26,16)}
+      {button('Other crew',()=>{scorePage++},'100%',44)}
+    </UiEntity>:s&&me?<UiEntity uiTransform={{width:'100%',flexDirection:'column'}}>
+      {s.phase==='lobby'?<UiEntity uiTransform={{width:'100%',flexDirection:'column'}}>
+        {line(`Rehearsal in ${Math.max(0,Math.ceil(((s.queueAt??clock)+QUEUE_MS-clock-(session?.offset??0))/1000))}s`,36,22)}
+        {line('Your crew is forming. Empty seats become\nclearly labeled simulated musicians.',60,17,muted)}
+        {line(`${sound?'Sound on.':'Muted: enable sound from Menu.'}\nFollow the icons to the white strike line.\nTap the matching C, E or G pad.`,80,17)}
+        {button('Explore while waiting',()=>open('none'),'100%',46)}
+      </UiEntity>:active()?<UiEntity uiTransform={{width:'100%',flexDirection:'column'}}>
+        {line(s.phase==='training'?`REHEARSAL ${s.round+1}/${TRAINING_ROUNDS} · ${tempo(s.round)} BPM`:`LIVE ${s.round+1}/5 · SCORE ×2`,28,18)}
+        {instrument(panelHeight-24-48-28-28-22)}
+        {line(feedback||'Meet the white line. Make the melody.',28,15)}
+        {line(`${sound?'Sound on':'Muted · enable in Menu'} · ${s.mode==='BOT_EXHIBITION'?'Bot exhibition':'Human crews'}`,22,14,muted)}
+      </UiEntity>:line('Use Open session for your latest results.',80,17)}
+    </UiEntity>:<UiEntity uiTransform={{width:'100%',flexDirection:'column'}}>
+      {line(session?.pending?'Joining your crew…':session?.notice||'Connecting…',80,17)}
+      {button('Return to the club',()=>open('none'),'100%',46)}
     </UiEntity>}
-    {footer}
   </UiEntity>
 }
 function tick() {
   if (!session) return
-  const s = session.state, me = s.players.find(p => p.id === session!.id), phase = key()
-  if (me && entered !== `${s.match}/${me.genre}`) {
-    entered = `${s.match}/${me.genre}`; const p = studioPosition(me.genre)
-    travel(p.x, p.y, p.z - 1, p.z + 3); practice = new Warmup(clock, GENRES.indexOf(me.genre)); feedback = 'Soundcheck: tap C / E / G at the white line.'
+  const s=session.state, me=s.players.find(p=>p.id===session!.id), phase=key()
+  if (me&&entered!==`${s.match}/${me.genre}`) { entered=`${s.match}/${me.genre}`; feedback='Get ready — your rehearsal is next.'; open('play') }
+  if (!me&&entered) {entered='';open('none')}
+  if (phase!==phaseKey) {
+    const nextStage=`${s.match}/${s.phase}`, stageChanged=nextStage!==stageSeen
+    phaseKey=phase;attempted=0;expired=0;intent=null;audioKey='';feedback='';scorePage=0
+    if(stageChanged&&me){
+      if(s.phase==='intermission')open('summary')
+      else if(s.phase==='result')open('result')
+      else if(s.phase==='training'||s.phase==='battle')open('play')
+    }
+    stageSeen=nextStage
   }
-  if (!me) { practice = null; entered = '' }
-  if (practice?.done(clock) && s.phase === 'lobby') practice = new Warmup(clock, (practice.round + 1) % 6)
-  if (phase !== phaseKey) {
-    if (s.phase === 'battle' && s.round === 0 && me) travel(me.genre === s.crews[0].genre ? 12 : 20, 1, 26, 31)
-    phaseKey = phase; played = 0; intent = null; scorePage = 0; feedback = 'Tap each note at the white line.'; audioKey = ''
-    if (s.phase !== 'lobby') { practice = null; hidden = false }
+  if(intent&&!session.pending) {
+    if(session.notice!=='Confirmed.'&&intent.phase===phase)feedback='Timing not confirmed. Keep following the notes.'
+    intent=null
   }
-  if (intent && !session.pending) {
-    if (session.notice === 'Confirmed.' && intent.phase === phase) {
-      played |= 1 << intent.index
-      const hit = intent.lane === cueFor(s, session.id, intent.index)
-      feedback = hit ? 'ON BEAT! Keep the crew together.' : 'Wrong lane. Follow the next note.'
-    } else feedback = 'Note not confirmed. Keep playing.'
-    intent = null
+  const age=clock+session.offset-s.since
+  if(active())for(let i=0;i<4;i++)if(!(expired&(1<<i))&&age>noteTime(s.round,i,s.phase==='battle')+LATE_MS){
+    expired|=1<<i;if(!(attempted&(1<<i))){mistake();feedback='Missed note — find the next beat.'}
   }
-  const age = clock + session.offset - s.since, soundAge = practice ? practice.age(clock) : age - (s.phase === 'battle' ? 3000 : 0)
-  const nextAudio = `${practice ? `warmup/${practice.startedAt}` : phase}/${sound}`
-  if (sound && nextAudio !== audioKey && soundAge >= 0 && soundAge < 7000 && (practice || ['training', 'battle'].includes(s.phase))) {
-    AudioSource.createOrReplace(soundEntity, { audioClipUrl: `assets/sounds/arena-${practice?.round ?? s.round}.wav`, playing: true, loop: false, global: true, volume: .4, currentTime: soundAge / 1000 }); audioKey = nextAudio
+  const soundAge=age-(s.phase==='battle'?3000:0), nextAudio=`${phase}/${sound}`
+  if(sound&&active()&&audioKey!==nextAudio&&soundAge>=0&&soundAge<7000){
+    AudioSource.createOrReplace(bed,{audioClipUrl:`assets/sounds/bed-${s.round}.wav`,playing:true,loop:false,global:true,volume:.45,currentTime:soundAge/1000});audioKey=nextAudio
   }
-  if (sound && s.phase === 'result' && s.winner && resultKey !== s.match) { resultKey = s.match; AudioSource.createOrReplace(resultEntity, { audioClipUrl: 'assets/sounds/resolve.wav', playing: true, loop: false, global: true, volume: .4 }) }
-  if (!sound || (!practice && !['training', 'battle'].includes(s.phase))) {
-    if (AudioSource.getOrNull(soundEntity)?.playing) AudioSource.getMutable(soundEntity).playing = false
-  }
-  if (!sound && AudioSource.getOrNull(resultEntity)?.playing) AudioSource.getMutable(resultEntity).playing = false
-  refreshClub(s, clock, reduced)
+  if(!sound||!active())for(const e of [bed,...voices,errorVoice])if(AudioSource.getOrNull(e)?.playing)AudioSource.getMutable(e).playing=false
+  if(sound&&s.phase==='result'&&s.winner&&resultKey!==s.match){resultKey=s.match;playClip(resultVoice,'assets/sounds/resolve.wav',.4)}
+  if(!sound&&AudioSource.getOrNull(resultVoice)?.playing)AudioSource.getMutable(resultVoice).playing=false
+  if(session.notice&&/No confirmation|Not accepted|Connection changed/.test(session.notice))feedback=session.notice
+  refreshClub(s,clock,reduced)
 }
 export function main() {
-  buildClub(); soundEntity = engine.addEntity(); resultEntity = engine.addEntity()
-  Transform.create(soundEntity, { position: Vector3.create(16, 2, 26) }); Transform.create(resultEntity, { position: Vector3.create(16, 2, 26) })
-  bus.on(CHANNEL, (packet: unknown, sender: string) => { if (session && sender && sender !== 'self') { session.receive(packet, sender.toLowerCase(), Date.now()); flush() } })
-  engine.addSystem(dt => {
-    for (const [i, action] of [InputAction.IA_ACTION_3, InputAction.IA_ACTION_4, InputAction.IA_ACTION_5].entries()) if (inputSystem.isTriggered(action, PointerEventType.PET_DOWN)) tap(i)
-    delta += dt; if (delta < .05) return; delta = 0; clock = Date.now()
-    const id = getPlayer()?.userId?.toLowerCase()
-    if (!id) { session = null; if (AudioSource.getOrNull(soundEntity)?.playing) AudioSource.getMutable(soundEntity).playing = false; return }
-    if (!session || session.id !== id) session = new ConcertSession(id, clock)
-    session.tick(clock); flush(); tick()
+  buildClub(choose,stage)
+  const voice=(file:string)=>{const e=engine.addEntity();Transform.create(e,{position:Vector3.create(16,2,26)});AudioSource.create(e,{audioClipUrl:file,playing:false,loop:false,global:true,volume:.5});return e}
+  bed=voice('assets/sounds/bed-0.wav');voices=[0,1,2].map(i=>voice(`assets/sounds/lead-${i}.wav`));errorVoice=voice('assets/sounds/mistake.wav');resultVoice=voice('assets/sounds/resolve.wav')
+  bus.on(CHANNEL,(packet:unknown,sender:string)=>{if(session&&sender&&sender!=='self'){session.receive(packet,sender.toLowerCase(),Date.now());flush()}})
+  engine.addSystem(dt=>{
+    for(const [i,action] of [InputAction.IA_ACTION_3,InputAction.IA_ACTION_4,InputAction.IA_ACTION_5].entries())if(inputSystem.isTriggered(action,PointerEventType.PET_DOWN))tap(i)
+    delta+=dt;if(delta<.05)return;delta=0;clock=Date.now()
+    const id=getPlayer()?.userId?.toLowerCase()
+    if(!id){session=null;for(const e of [bed,...voices,errorVoice,resultVoice])if(AudioSource.getOrNull(e)?.playing)AudioSource.getMutable(e).playing=false;return}
+    if(!session||session.id!==id){session=new ConcertSession(id,clock);entered='';open('none')}
+    session.tick(clock);flush();tick()
   })
-  ReactEcsRenderer.setUiRenderer(ui, { virtualWidth: 0, virtualHeight: 0, screenInset: 'interactable' })
+  ReactEcsRenderer.setUiRenderer(ui,{virtualWidth:0,virtualHeight:0,screenInset:'interactable'})
 }

@@ -1,12 +1,12 @@
-/** v0.7 concert rules. Bots are disclosed exhibition seats, never real attendance. */
+/** v0.8 walk-up concert. Stage readiness is separate from rehearsal. */
 import { GENRES, GENRE_NAMES, validId, type Genre } from './arena'
 import { hitCount, noteLane, noteTime, recordNote } from './rhythm'
 export { GENRES, GENRE_NAMES, validId, type Genre }
-export const QUEUE_MS = 20000, TRAINING_MS = 7000, TURN_MS = 12000, RESULT_MS = 24000
-export const TRAINING_ROUNDS = 6, BATTLE_ROUNDS = 5
+export const QUEUE_MS = 10000, TRAINING_MS = 7000, TURN_MS = 12000, RESULT_MS = 24000, INTERMISSION_MS = 120000
+export const TRAINING_ROUNDS = 3, BATTLE_ROUNDS = 5
 export const ATTRIBUTES = ['rhythm', 'precision', 'harmony', 'consistency'] as const
 export type Attributes = Record<typeof ATTRIBUTES[number], number>
-export type Phase = 'lobby' | 'training' | 'battle' | 'result'
+export type Phase = 'lobby' | 'training' | 'intermission' | 'battle' | 'result'
 export type Member = { id: string; genre: Genre; ready: boolean; bot: boolean }
 export type Crew = { genre: Genre; training: Attributes; live: Attributes; final: Attributes }
 export type Arena = {
@@ -26,7 +26,7 @@ export function validCommand(v: unknown): v is Command {
 }
 export function newArena(now: number, match: string, seed = 1): Arena {
   return { match, version: 0, phase: 'lobby', round: 0, since: now, seed: seed >>> 0, queueAt: null,
-    players: [], crews: [], choices: {}, mode: 'HUMAN_MATCH', winner: null, log: ['Choose your studio. Empty seats become labeled bots after 20 seconds.'] }
+    players: [], crews: [], choices: {}, mode: 'HUMAN_MATCH', winner: null, log: ['Walk to a studio instrument. Empty seats become labeled bots after 10 seconds.'] }
 }
 function clone(s: Arena): Arena { return { ...s, version: s.version + 1, players: s.players.map(p => ({ ...p })),
   crews: s.crews.map(c => ({ ...c, training: { ...c.training }, live: { ...c.live }, final: { ...c.final } })), choices: { ...s.choices }, log: [...s.log] } }
@@ -49,7 +49,12 @@ export function applyCommand(s: Arena, id: string, e: Envelope, now: number): Ar
     const n = clone(s); n.players.push({ id, genre: c.genre, ready: true, bot: false }); n.queueAt ??= now; return n
   }
   if (!m || m.bot) return s
-  if (c.kind === 'ready') return s // Joining already enters the visible timed queue.
+  if (c.kind === 'ready') {
+    if (s.phase !== 'intermission' || m.ready) return s
+    const n = clone(s); n.players.find(p => p.id === id)!.ready = true
+    if (n.players.every(p => p.ready)) { n.phase = 'battle'; n.round = 0; n.since = now; n.choices = {}; n.log = ['All performers ready. Live stage counts 2x.'] }
+    return n
+  }
   if (c.kind !== 'note' || !['training', 'battle'].includes(s.phase)) return s
   const target = noteTime(s.round, c.index, s.phase === 'battle'), age = now - s.since
   const key = `${id}:notes`, mask = s.choices[key] ?? 0
@@ -105,9 +110,13 @@ export function advance(s: Arena, now: number): Arena {
   if (!Number.isFinite(now) || now < s.since) return s
   if (s.phase === 'lobby') return s.players.length && (s.players.length === 4 || (s.queueAt !== null && now >= s.queueAt + QUEUE_MS)) ? startShow(s, now) : s
   if (s.phase === 'result') return now >= s.since + RESULT_MS ? newArena(now, `${s.match.slice(0, s.match.lastIndexOf(':'))}:${now}`, s.seed + 1) : s
+  if (s.phase === 'intermission') {
+    if (now < s.since + INTERMISSION_MS) return s
+    const n = clone(s); n.phase = 'result'; n.since = now; n.winner = null; n.log = ['Show cancelled: performers did not reach the stage. No winner.']; return n
+  }
   if (now < s.since + (s.phase === 'training' ? TRAINING_MS : TURN_MS)) return s
   const n = clone(s); scoreRound(n); n.choices = {}; n.since = now
-  if (s.phase === 'training' && s.round + 1 === TRAINING_ROUNDS) { n.phase = 'battle'; n.round = 0; n.log = ['MAIN STAGE: live performance counts 2x. Follow the notes together.'] }
+  if (s.phase === 'training' && s.round + 1 === TRAINING_ROUNDS) { n.phase = 'intermission'; n.round = 0; n.players.forEach(p => { p.ready = p.bot }); n.log = ['Rehearsal complete. Review your attributes, then walk to the main-stage microphone.'] }
   else if (s.phase === 'battle' && s.round + 1 === BATTLE_ROUNDS) {
     n.phase = 'result'
     const [a, b] = n.crews.map(c => total(c.final))
@@ -120,13 +129,13 @@ export const publicSnapshot = (s: Arena): Arena => ({ ...clone(s), version: s.ve
 export function validSnapshot(v: unknown): v is Arena {
   if (!v || typeof v !== 'object') return false
   const s = v as Arena
-  if (typeof s.match !== 'string' || s.match.length > 180 || !integer(s.version, 0, 1e9) || !['lobby', 'training', 'battle', 'result'].includes(s.phase) || !integer(s.round, 0, 5) || !Number.isFinite(s.since) || !integer(s.seed, 0, 0xffffffff) || (s.queueAt !== null && !Number.isFinite(s.queueAt))) return false
+  if (typeof s.match !== 'string' || s.match.length > 180 || !integer(s.version, 0, 1e9) || !['lobby', 'training', 'intermission', 'battle', 'result'].includes(s.phase) || !integer(s.round, 0, 5) || !Number.isFinite(s.since) || !integer(s.seed, 0, 0xffffffff) || (s.queueAt !== null && !Number.isFinite(s.queueAt))) return false
   if (!['HUMAN_MATCH', 'BOT_EXHIBITION'].includes(s.mode) || !Array.isArray(s.players) || s.players.length > 4 || !Array.isArray(s.crews) || s.crews.length > 2 || !Array.isArray(s.log) || s.log.length > 5 || s.log.some(x => typeof x !== 'string' || x.length > 240)) return false
   if (s.players.some(p => !p || !validId(p.id) || !GENRES.includes(p.genre) || typeof p.bot !== 'boolean' || typeof p.ready !== 'boolean' || p.id.startsWith('bot:') !== p.bot) || new Set(s.players.map(p => p.id)).size !== s.players.length || new Set(s.players.map(p => p.genre)).size > 2 || s.players.some(p => s.players.filter(q => q.genre === p.genre).length > 2)) return false
   if (s.mode === 'HUMAN_MATCH' && s.players.some(p => p.bot)) return false
   if (s.crews.some(c => !c || !GENRES.includes(c.genre) || ['training', 'live', 'final'].some(f => !c[f as keyof Crew] || ATTRIBUTES.some(k => typeof (c as any)[f][k] !== 'number' || !Number.isFinite((c as any)[f][k]) || (c as any)[f][k] < 0 || (c as any)[f][k] > 100.001)))) return false
   if (!s.choices || typeof s.choices !== 'object' || Array.isArray(s.choices) || Object.keys(s.choices).length > 8 || Object.entries(s.choices).some(([k, v]) => !s.players.some(p => k === `${p.id}:notes` || k === `${p.id}:perfect`) || !integer(v, 0, k.endsWith(':notes') ? 255 : 15))) return false
   if (s.winner !== null && s.winner !== 'draw' && !s.crews.some(c => c.genre === s.winner)) return false
-  if (['training', 'battle'].includes(s.phase) && (s.players.length !== 4 || s.crews.length !== 2 || new Set(s.crews.map(c => c.genre)).size !== 2 || s.crews.some(c => s.players.filter(p => p.genre === c.genre).length !== 2))) return false
+  if (['training', 'intermission', 'battle'].includes(s.phase) && (s.players.length !== 4 || s.crews.length !== 2 || new Set(s.crews.map(c => c.genre)).size !== 2 || s.crews.some(c => s.players.filter(p => p.genre === c.genre).length !== 2))) return false
   return true
 }

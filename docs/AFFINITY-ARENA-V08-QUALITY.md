@@ -1,0 +1,11 @@
+# Affinity Arena 0.8 — walk-up rehearsal candidate
+
+SOURCE_CANDIDATE; NOT_DEPLOYED; NATIVE_ACCEPTANCE_HOLD.
+
+The user tested 0.7 on Android and liked the venue, while reporting an intrusive panel, silent rectangular notes and a lengthy rehearsal. Version 0.8 implements walk-up instrument selection, a compact translucent introduction, expandable help/settings, minimizable gameplay, original musical icons and responsive synthesized lead/error audio. No automatic teleport remains. Three 7-second rehearsal rounds replace six; a separate 120-second stage check-in phase freezes training attributes until all human participants touch a nearby stage microphone. Bots remain disclosed and pre-ready. Live weighting remains 2x.
+
+88 tests pass: 64 retained historical tests plus 24 current concert/controller/audio checks. Checks cover walking interaction callbacks, no startup sound/full selector, readiness and timeout cancellation, exact 21-second rehearsal, unchanged pause scores, correct/wrong/missed input audio routing, generated PCM bounds, RGBA atlas dimensions, reversible menus, minimized-round continuity and five portrait/landscape/density layouts. Production SDK build and typecheck pass. Adapter tests are not native collision, renderer, audio-device or real-multiplayer tests.
+
+Bounded review corrected the vector note head/strike-line alignment, percussion downbeat alignment, muted-label consistency and explicit mute-preference persistence. No claim of listening quality or physical Android success is made. New local artifacts are not yet the public World version. Existing v0.7 deployment and DoraHacks BUIDL 48375 remain separate; do not resubmit the BUIDL.
+
+Device acceptance path: fully restart after confirmed conversion; see only compact arrival guidance; walk to K-pop or another named instrument; hear audio after interaction; play right/wrong/missed notes; minimize and reopen; review all rehearsal attributes after 21s; walk to a stage mic; complete live rounds; compare final scores. Confirm physical hitboxes, audible timing, transparent-panel contrast and walking steps on Android. Public demo and X remain pending.

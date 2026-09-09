@@ -1,92 +1,31 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-09T10:34:25Z",
-  "title": "Design System: Affinity Arena native neon club",
+  "generatedAt": "2026-09-09T17:07:25.872Z",
+  "title": "Affinity Arena 0.8 walk-up music club",
   "extensions": {
-    "platform": "Decentraland SDK7 ReactEcs and native ECS geometry",
-    "sourceFiles": ["src/concert-layout.ts", "src/concert-scene.tsx", "src/concert-world.ts", "src/concert.ts", "src/rhythm.ts"],
+    "platform": "Decentraland SDK7 ReactEcs",
+    "sourceFiles": [
+      "src/concert-scene.tsx",
+      "src/concert-world.ts",
+      "src/concert.ts",
+      "src/concert-session.ts"
+    ],
     "verification": {
-      "scope": "Source extraction only",
-      "nativeDesktop": "HOLD: computer client crashes; no current native screenshot available",
-      "nativeMobile": "HOLD: user S24 FE test awaits publication of the candidate",
-      "audio": "HOLD: current native playback not verified",
-      "preview": "No HTML/CSS snippets: shipped components are native ReactEcs. This sidecar supplies no shadow-DOM approximation and does not claim one is canonical."
+      "scope": "Source and SDK adapter tests only",
+      "nativeMobile": "HOLD: v0.8 not tested on physical phone",
+      "audio": "HOLD: PCM and callbacks checked; native listening not verified"
     },
-    "colorMeta": {
-      "ink": { "role": "neutral", "displayName": "Midnight Ink" },
-      "panel": { "role": "neutral", "displayName": "Deep Purple Panel" },
-      "white": { "role": "neutral", "displayName": "Near White" },
-      "muted": { "role": "neutral", "displayName": "Pale Periwinkle" },
-      "kpop": { "role": "secondary", "displayName": "K-pop Pink" },
-      "funk": { "role": "secondary", "displayName": "Brazilian Funk Lime" },
-      "latin": { "role": "secondary", "displayName": "Latin Urban Coral" },
-      "afrobeats": { "role": "secondary", "displayName": "Afrobeats Mint" },
-      "hiphop": { "role": "secondary", "displayName": "Hip-hop Violet" },
-      "electronic": { "role": "primary", "displayName": "Electronic Cyan" }
+    "surface": {
+      "mode": "experience",
+      "arrival": "compact translucent dock",
+      "input": "world instruments then musical pads",
+      "trainingSeconds": 21,
+      "intermission": "walk to microphone, all human performers ready",
+      "liveWeight": 2
     },
-    "typographyMeta": {
-      "display": { "displayName": "Arena title", "purpose": "Standard layout title; runtime density scaling applies." },
-      "display-compact": { "displayName": "Compact arena title", "purpose": "Title in the short native layout." },
-      "result": { "displayName": "Result heading", "purpose": "Winner, draw or cancellation." },
-      "title": { "displayName": "Studio and phase heading", "purpose": "Current studio, tempo, round or crew score." },
-      "body": { "displayName": "Native body and control", "purpose": "Default SDK font; no custom family, weight or line-height assigned." },
-      "feedback": { "displayName": "Performance feedback", "purpose": "Confirmed note, wrong lane and unconfirmed action guidance." },
-      "label": { "displayName": "Disclosure", "purpose": "Exhibition, attendance and supporting labels." },
-      "instrument-key": { "displayName": "Instrument key", "purpose": "Large C / E / G action labels." }
-    },
-    "motion": [
-      { "name": "world-refresh", "value": "100ms", "purpose": "Throttle stage-bar and crowd transform updates." },
-      { "name": "note-approach", "value": "1700ms", "purpose": "Visible travel lead before the white strike line; retained with reduced motion." },
-      { "name": "reduced-motion", "value": "Static stage bars and raised result placards without oscillation", "purpose": "Preserve result information while reducing decorative motion." }
-    ],
-    "breakpoints": [
-      { "name": "compact", "value": "available logical height < 490px" },
-      { "name": "recovery", "value": "layout width < 290px or layout height < 320px" }
-    ],
-    "assetProvenance": [{ "asset": "assets/images/crew-atlas-v07.png", "receipt": "../docs/affinity-arena-design/crew-atlas-v07.provenance.json", "usage": "Generated 3x2 original crew emblem atlas; not gameplay capture or artist branding." }],
-    "limitations": [
-      "No tonal ramps are implemented; synthetic ramps are omitted to keep this artifact source-backed.",
-      "No native font family override, corner radius or shadow token is implemented.",
-      "Logical base pixels in DESIGN.md are scaled by concertLayout and do not prove device touch-target size."
-    ]
-  },
-  "components": [
-    { "name": "Primary native control", "kind": "button", "refersTo": "control-primary", "description": "Cyan action with dark text; onMouseDown invokes its callback only when active. No custom hover/focus styling is defined." },
-    { "name": "Secondary native control", "kind": "button", "refersTo": "control-secondary", "description": "Pale control used for sound, size, paging, queue exit and club visibility." },
-    { "name": "Crew tile", "kind": "card", "refersTo": "crew-tile", "description": "49%-width native row tile with atlas emblem, genre title and occupancy; emblem and title enter an available studio." },
-    { "name": "Music panel", "kind": "custom", "refersTo": "music-panel", "description": "Opaque bottom-right native panel with compact crew paging, three-page compact results and XL recovery." },
-    { "name": "Rhythm instrument", "kind": "custom", "description": "Three C/E/G lanes, four notes per round, white strike line, large keys and confirmation-aware feedback. Key variants are note-key-c, note-key-e and note-key-g." },
-    { "name": "Result and NPC celebration", "kind": "custom", "description": "Four final attributes and total out of 400; winning-crew placards rise from an explicitly labeled NPC crowd. Draws retain mixed emblems." },
-    { "name": "Open music controls", "kind": "button", "refersTo": "control-primary", "description": "Action remains visible after View club hides the overlay; a separate Reset UI size action clears XL mode when space is insufficient." }
-  ],
-  "narrative": {
-    "northStar": "Studio to Main Stage",
-    "overview": "An enclosed midnight club connects six music studios with a broad performance stage. Vivid crew emblems, speaker stacks, trusses and instruments establish a music venue; opaque controls make the timing game readable. The user explicitly replaced the former forest and tiny panels with this identity on September 9, 2026.\n\nThis document describes the v0.7 native SDK implementation in `src/concert-layout.ts`, `src/concert-scene.tsx`, `src/concert-world.ts`, `src/concert.ts` and `src/rhythm.ts`, following [v07-surface-brief.md](../docs/affinity-arena-design/v07-surface-brief.md). It records source behavior, not rendered acceptance. Native desktop/mobile layout, audio and gameplay remain **HOLD**: no current native screenshot was available because the computer client crashes; the user's S24 FE test awaits publication of the candidate.",
-    "keyCharacteristics": [
-      "Six music identities, each with an original emblem and accent.",
-      "Large opaque rhythm controls with a white strike line and explicit feedback.",
-      "A timed queue, disclosed simulated musicians, and visible score arithmetic.",
-      "A stylized NPC crowd that celebrates the computed result."
-    ],
-    "rules": [
-      { "name": "The Named State Rule", "body": "Color supplements crew names, lane letters, queue counts and exhibition/result labels; it never supplies those meanings alone.", "section": "colors" },
-      { "name": "The Native Evidence Rule", "body": "Logical dimensions and source review describe layout intent and implementation; only a rendered device check can establish safe-area clearance, wrapping and usable physical touch sizes.", "section": "layout" }
-    ],
-    "dos": [
-      "Do preserve the six named music identities and their shared scoring rules.",
-      "Do keep opaque controls, lane letters and the white strike line readable against the venue.",
-      "Do disclose bot exhibitions and NPC score celebrations wherever results are shown.",
-      "Do preserve compact crew/score paging, XL recovery and access to the club view.",
-      "Do keep generated-art provenance with the shipping crew atlas.",
-      "Do retain native desktop/mobile and S24 FE acceptance as HOLD until tested in the current candidate."
-    ],
-    "donts": [
-      "Don't restore the discarded forest or tiny cue desk as this scene's design identity.",
-      "Don't claim custom fonts, DOM/CSS rendering, bloom or native visual acceptance from source tokens.",
-      "Don't present generated emblems as artist assets or gameplay captures.",
-      "Don't describe simulated musicians, NPC fans or score-derived placards as real players or audience voting.",
-      "Don't infer publication, gameplay PASS or submission from a build or this documentation.",
-      "Don't redesign HACKOPS while producing this scene."
-    ]
+    "assets": {
+      "icons": "assets/images/note-symbols.svg (authored geometry), note-symbols.png (rasterized atlas)",
+      "audio": "scripts/generate-concert-feedback.mjs (original synthesis)"
+    }
   }
 }

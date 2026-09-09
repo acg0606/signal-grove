@@ -1,7 +1,7 @@
 import { advance, applyCommand, newArena, publicSnapshot, validCommand, validId, validSnapshot, type Arena, type Command, type Envelope } from './concert'
 import { noteTime, LATE_MS } from './rhythm'
 const LEASE = 8000
-export const CHANNEL = 'affinity-arena-v7-concert'
+export const CHANNEL = 'affinity-arena-v8-concert'
 export type Packet = { kind: 'hello'; incarnation: number } | { kind: 'state'; state: Arena; time: number }
   | { kind: 'ping'; target: string; at: number } | { kind: 'pong'; target: string; at: number; time: number }
   | { kind: 'command'; target: string; incarnation: number; seq: number; envelope: Envelope }
@@ -112,7 +112,7 @@ export class ConcertSession {
       if (sender === this.id || !Number.isFinite(p.time) || !validSnapshot(p.state) || !p.state.match.startsWith(`${sender}:`)) return
       // New spectators discover the running coordinator instead of restarting it.
       if (sender !== this.host) {
-        if (this.state.phase !== 'lobby' || this.state.players.length !== 0 || !['training', 'battle', 'result'].includes(p.state.phase)) return
+        if (this.state.phase !== 'lobby' || this.state.players.length !== 0 || !['training', 'intermission', 'battle', 'result'].includes(p.state.phase)) return
         this.host = sender; this.pending = null; this.clockReady = false; this.state = newArena(now, `${sender}:0`)
       }
       // Host match identifiers end with a monotonically increasing timestamp.
