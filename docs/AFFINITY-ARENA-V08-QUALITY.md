@@ -1,6 +1,8 @@
 # Affinity Arena 0.8 — walk-up rehearsal candidate
 
-SOURCE_CANDIDATE; NOT_DEPLOYED; NATIVE_ACCEPTANCE_HOLD.
+WORLD_DEPLOYED; CONVERSION_IN_PROCESS; NATIVE_ACCEPTANCE_HOLD.
+
+Publication update, 2026-09-09T19:09:41Z: the retry succeeded. World entity `bafkreihaetagbxg7o5v2kbk3vytjpsmd6au2pttt3v3mscqf5kccbs6xva` contains the exact v0.8 production bundle (byte-identical verification). Creator Hub confirms upload complete; registry conversion is pending. See [the deployment receipt](AFFINITY-ARENA-V08-WORLD-RECEIPT.json). Statements below about the earlier undeployed candidate describe the pre-publication review, not current deployment status. Physical-device acceptance remains pending.
 
 The user tested 0.7 on Android and liked the venue, while reporting an intrusive panel, silent rectangular notes and a lengthy rehearsal. Version 0.8 implements walk-up instrument selection, a compact translucent introduction, expandable help/settings, minimizable gameplay, original musical icons and responsive synthesized lead/error audio. No automatic teleport remains. Three 7-second rehearsal rounds replace six; a separate 120-second stage check-in phase freezes training attributes until all human participants touch a nearby stage microphone. Bots remain disclosed and pre-ready. Live weighting remains 2x.
 
