@@ -1,0 +1,28 @@
+{
+  "verifiedAt": "2026-09-09T11:14:21.884Z",
+  "verification": "PUBLIC_WORLD_API_AND_AUTHENTICATED_CREATOR_HUB",
+  "world": "mitthie.dcl.eth",
+  "status": "DEPLOYED",
+  "conversion": "IN_PROCESS",
+  "entityId": "bafkreignytbabn5aj3c2pa2acb7sdklj7zcavi3bbwqzls3qwswv45xymy",
+  "serverCreatedAt": "2026-09-09T11:12:59.585Z",
+  "parcels": [
+    "0,0",
+    "1,0",
+    "0,1",
+    "1,1"
+  ],
+  "files": 13,
+  "totalBytes": 5022606,
+  "sourceCommit": "3de41031ccf85d9207f1ad0d068b8bfe414e66e7",
+  "bundle": {
+    "bytes": 608731,
+    "sha256": "48b2015b1f2bf6f002514b45bfa6964d82a2bdef3bf548261550dda6fa8ad81b",
+    "publicBytesEqualLocal": true,
+    "concertChannelPresent": true
+  },
+  "thumbnail": "assets/images/crew-atlas-v07.png",
+  "landscapeTerrain": false,
+  "nativeGameplayAcceptance": "HOLD",
+  "notes": "User confirmed replacing the old arena. Only the old Affinity Arena scene was replaced. Prior source is preserved in git; this receipt excludes authorization signatures. Conversion and physical-phone acceptance are independent of server deployment. No public video or X receipt is claimed."
+}

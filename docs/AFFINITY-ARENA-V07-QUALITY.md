@@ -1,6 +1,6 @@
 # Affinity Arena 0.7 — mobile feedback rebuild
 
-September 9, 2026. SOURCE_VERIFIED; WORLD_UPDATE_PENDING; NATIVE_MOBILE_ACCEPTANCE_HOLD.
+September 9, 2026. SOURCE_VERIFIED; WORLD_V07_DEPLOYED_CONVERSION_PENDING; NATIVE_MOBILE_ACCEPTANCE_HOLD.
 
 ## Why this replaces 0.5/0.6
 
@@ -28,7 +28,7 @@ The independent finish review found and prompted fixes for enlarged landscape UI
 
 ## Still required
 
-Publish candidate and verify World receipt, then physical S24 FE test for readability, icon UV mapping, studio/stage navigation, audible timing, touch feedback and result celebration. Run a separate real-participant multiplayer test. Record public demo/presentation video and the authorized nonduplicate X post. DoraHacks BUIDL 48375 is already Under Review; do not resubmit or equate that receipt with game acceptance.
+World deployment and byte-identical public bundle readback passed; receipt: `AFFINITY-ARENA-V07-WORLD-RECEIPT.json`. Wait for Creator Hub conversion completion, then physical S24 FE test for readability, icon UV mapping, studio/stage navigation, audible timing, touch feedback and result celebration. Run a separate real-participant multiplayer test. Record public demo/presentation video and the authorized nonduplicate X post. DoraHacks BUIDL 48375 is already Under Review; do not resubmit or equate that receipt with game acceptance.
 
 ## Art provenance
 

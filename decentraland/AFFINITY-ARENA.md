@@ -4,7 +4,7 @@ Find your music crew. Rehearse together. Own the stage.
 
 ## Current status
 
-Version 0.7 is a source-verified candidate: typechecking, 84 automated tests and the production build pass. These include simulated clients and SDK adapters, not physical-phone or native-renderer acceptance. The World still serves the earlier v0.5; v0.7 publication is pending. DoraHacks [BUIDL 48375](https://dorahacks.io/buidl/48375) was observed submitted and Under Review on September 9, 2026. Submission is not technical acceptance.
+Version 0.7 is a source-verified candidate: typechecking, 84 automated tests and the production build pass. These include simulated clients and SDK adapters, not physical-phone or native-renderer acceptance. Version 0.7 was accepted by the World server on September 9, 2026 at 11:12:59 UTC; the served bundle is byte-identical to the verified local build. Creator Hub conversion is still in progress. See `../docs/AFFINITY-ARENA-V07-WORLD-RECEIPT.json`. DoraHacks [BUIDL 48375](https://dorahacks.io/buidl/48375) was observed submitted and Under Review on September 9, 2026. Submission is not technical acceptance.
 
 ## Play loop
 
