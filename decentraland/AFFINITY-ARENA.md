@@ -4,7 +4,7 @@ Find your music crew. Rehearse together. Duel together.
 
 ## Current status
 
-Native SDK7 rhythm implementation, not a verified public World. Compilation and 50 automated tests pass, including four simulated transport clients with 200ms each-way delay and a dropped acknowledgement during the first rehearsal. They are **not** four real Decentraland visitors. Native visual, audio, phone, keyboard and multiplayer QA, public demo video and final submission remain pending. Signal Grove is preserved as the earlier concept, not the active experience.
+Version 0.6 is the current source candidate. Typechecking, 61 automated tests and the production build pass, including simulated transport and production-controller tests. They are **not** four real Decentraland visitors or physical-phone acceptance. The earlier v0.5 has a server-accepted World deployment, but public gameplay has not been accepted; v0.6 is not deployed. Native interaction, audio, phone, keyboard and multiplayer QA, public demo video and final submission remain pending. Signal Grove is preserved as the earlier concept, not the active experience.
 
 ## Play loop
 
@@ -16,7 +16,7 @@ Native SDK7 rhythm implementation, not a verified public World. Compilation and 
 
 ## Access and interface
 
-The HUD uses interactable-area pixels, 46px gameplay buttons, three touch lanes and text feedback. The 40px sound control remains in the title row. At least 280x340 usable panel pixels are required; close overlays or use a larger viewport if needed. Scenery uses charcoal twin stages, gold frames, speaker cones, crew signs, a central board and response pulses. Visitors bring their own avatars; the concept illustration's costumes are not custom wearable assets. MUSIC-PROVENANCE.md documents six original synthesized clips and a result chord. No artist assets, lyrics, commercial recordings, streaming embeds, payments or token rewards are used. Device validation is still required.
+The bottom-right HUD uses interactable-area pixels, 46px gameplay buttons, three touch lanes and text feedback. Crews, Warm-up and How to play tabs introduce the experience. Solo seven-second practice cycles through six grooves without awarding match resources or manufacturing teammates. Phase progress, crew availability and both HP bars remain visible where relevant. Reduce motion disables the decorative stage swell; falling notes remain essential timing cues. Stage-only view is reversible. Controlled layout checks cover 390x844, 844x390 and 1440x900 viewports, not physical devices. Close platform overlays if they obscure controls. Scenery uses charcoal twin stages, gold frames, speaker cones, crew signs, a central board and response pulses. Visitors bring their own avatars; the concept illustration's costumes are not custom wearable assets. MUSIC-PROVENANCE.md documents six original synthesized clips and a result chord. No artist assets, lyrics, commercial recordings, streaming embeds, payments or token rewards are used. Device validation is still required.
 
 ## Networking limits
 

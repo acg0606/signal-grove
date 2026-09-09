@@ -2,7 +2,7 @@
 
 This branch contains the music-affinity evolution of Signal Grove: two real-player crews hit C/E/G notes together, earn bounded resources and duel with four musical cards plus rhythm bonuses. Six original synthesized exercises rise from 80 to 130 BPM; no commercial recording is used. Includes K-pop, Brazilian Funk, Latin Urban, Afrobeats, Hip-hop and Electronic with equal mechanics. The original Signal Grove source and main branch are preserved. Audio provenance and its reproducible generator are included.
 
-Read [the current arena rules and limitations](decentraland/AFFINITY-ARENA.md). Automated tests and compilation are source evidence only. **No public World deployment, real four-client/phone QA, demo video or hackathon submission is claimed.** The peer-coordinated prototype has no economic rewards and is not cheat-proof.
+Read [the current arena rules and limitations](decentraland/AFFINITY-ARENA.md). Version 0.6 adds solo warm-up, onboarding tabs, explicit crew/phase feedback, reduced decorative motion and change-gated stage updates. Automated tests and compilation are source evidence only. The earlier v0.5 has a server-accepted World deployment; this does not establish public gameplay acceptance or v0.6 deployment. **Real four-client/phone QA, public demo video and hackathon submission remain pending.** The peer-coordinated prototype has no economic rewards and is not cheat-proof.
 
 ## Earlier Signal Grove overview
 
@@ -19,9 +19,8 @@ Typechecking, 19 automated tests, and the official production build passed on
 and authentication-proxy safety regressions. Proxy tests do not prove login
 success. The HUD now distinguishes pending and locally applied choices.
 
-No persistent public World, two-player runtime validation or mobile-client
-validation is claimed yet. A public World and final official submission are
-still pending. Follow the SDK README for those remaining checks.
+The preceding Signal Grove test counts are historical. For current Affinity Arena
+evidence and outstanding acceptance work, use the linked arena document above.
 
 Preview defaults are loopback-only, with no browser or client auto-launch.
 No public inbound port, private-key export or disabled TLS validation is needed
