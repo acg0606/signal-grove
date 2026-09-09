@@ -4,7 +4,7 @@ Find your music crew. Rehearse together. Duel together.
 
 ## Current status
 
-Version 0.6 is the current source candidate. Typechecking, 61 automated tests and the production build pass, including simulated transport and production-controller tests. They are **not** four real Decentraland visitors or physical-phone acceptance. The earlier v0.5 has a server-accepted World deployment, but public gameplay has not been accepted; v0.6 is not deployed. Native interaction, audio, phone, keyboard and multiplayer QA, public demo video and final submission remain pending. Signal Grove is preserved as the earlier concept, not the active experience.
+Version 0.6 is the current source candidate. Typechecking, 64 automated tests and the production build pass, including simulated transport, production-controller and local-launcher tests. They are **not** four real Decentraland visitors or physical-phone acceptance. The earlier v0.5 has a server-accepted World deployment, but public gameplay has not been accepted; v0.6 is not deployed. DoraHacks BUIDL 48375 is submitted and Under Review, as observed September 9, 2026; this is not technical acceptance. Native interaction, audio, phone, keyboard and multiplayer QA and a public demo video remain pending. Signal Grove is preserved as the earlier concept, not the active experience.
 
 ## Play loop
 
@@ -30,4 +30,10 @@ Use the existing pinned SDK7 7.27.0 environment: `pnpm install --frozen-lockfile
 
 ## Delivery gate
 
-Do not mark submitted until there is a verified World entity, public link, real phone and four-client acceptance, demo video and official portal receipt. The post-delivery X announcement also needs a public video and verified company mention. Source publication is a separate state.
+Keep portal submission separate from product acceptance: [BUIDL 48375](https://dorahacks.io/buidl/48375) is Under Review, while real phone and four-client acceptance, v0.6 World publication and public demo video remain open. The post-delivery X announcement also needs a public video and verified company mention. Source publication is a separate state.
+
+## Safe local preview
+
+Build first with `pnpm build:production`. Run `pnpm start:local` for the loopback preview server only, or `pnpm start:native` for that server plus exactly one SDK-managed desktop client launch. Do not manually launch another client while the native command runs. Both modes bind to `127.0.0.1:8347`, disable automatic browser opening and preserve normal authentication. No tunnel, firewall change or browser local-network permission is required. Stop the preview when finished.
+
+On the current Windows workstation, Creator Hub incorrectly reported the installed client missing; the explicit native command bypassed that Hub installation check, not authentication. The standard Decentraland client also crashed outside this preview with graphics error `0x887A0005`. This is not proof that the scene is bug-free. See `../docs/AFFINITY-ARENA-RUNTIME-DIAGNOSIS-2026-09-09.md`; acceptance requires a working compatible device.

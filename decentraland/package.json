@@ -9,8 +9,9 @@
     "deploy:world": "node --use-system-ca ./node_modules/@dcl/sdk-commands/dist/index.js deploy --target-content https://worlds-content-server.decentraland.org --multi-scene --no-browser --port 8000",
     "start": "node scripts/start-local-preview.mjs",
     "start:local": "node scripts/start-local-preview.mjs",
+    "start:native": "node scripts/start-local-preview.mjs --native",
     "check": "tsc --noEmit",
-    "test": "tsx --test tests/room.test.ts tests/presentation.test.ts tests/arena.test.ts tests/arena-session.test.ts tests/arena-layout.test.ts tests/arena-audio.test.ts tests/arena-experience.test.ts tests/arena-ui.test.ts tests/linker-auth.test.cjs",
+    "test": "tsx --test tests/room.test.ts tests/presentation.test.ts tests/arena.test.ts tests/arena-session.test.ts tests/arena-layout.test.ts tests/arena-audio.test.ts tests/arena-experience.test.ts tests/arena-ui.test.ts tests/preview-options.test.ts tests/linker-auth.test.cjs",
     "audio:generate": "node scripts/generate-arena-audio.mjs"
   },
   "dependencies": {
