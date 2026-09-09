@@ -3,7 +3,12 @@
   "verification": "PUBLIC_WORLD_API_AND_AUTHENTICATED_CREATOR_HUB",
   "world": "mitthie.dcl.eth",
   "status": "DEPLOYED",
-  "conversion": "IN_PROCESS",
+  "conversion": "COMPLETE",
+  "conversionVerifiedAt": "2026-09-09T19:20:45Z",
+  "conversionVerification": "PUBLIC_ASSET_BUNDLE_REGISTRY_AND_CURRENT_WORLD_ENTITY",
+  "registryComplete": true,
+  "assetBundles": { "mac": "complete", "windows": "complete" },
+  "lods": { "mac": "pending", "windows": "pending" },
   "entityId": "bafkreihaetagbxg7o5v2kbk3vytjpsmd6au2pttt3v3mscqf5kccbs6xva",
   "serverCreatedAt": "2026-09-09T19:08:50.774Z",
   "parcels": [
@@ -23,5 +28,5 @@
     "noteAtlasReferencePresent": true
   },
   "nativeGameplayAcceptance": "HOLD",
-  "notes": "Retry followed confirmed earlier upload failure and readback of the old v0.7 entity. Only the existing Affinity Arena scene was replaced. Old source is preserved in git. Creator Hub confirms upload complete and conversion in process; registry mac/windows pending. No signatures, credentials, public video or X receipt are included."
+  "notes": "Retry followed confirmed earlier upload failure and readback of the old v0.7 entity. Only the existing Affinity Arena scene was replaced. Old source is preserved in git. Subsequent public registry readback reports complete=true and mac/windows asset bundles complete; LODs remain pending. World readback confirms this entity remains deployed. Ready for user device testing, not a claim of physical Android acceptance. No signatures, credentials, public video or X receipt are included."
 }

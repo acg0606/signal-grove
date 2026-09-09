@@ -1,6 +1,8 @@
 # Affinity Arena 0.8 — walk-up rehearsal candidate
 
-WORLD_DEPLOYED; CONVERSION_IN_PROCESS; NATIVE_ACCEPTANCE_HOLD.
+WORLD_DEPLOYED; CONVERSION_COMPLETE; READY_FOR_DEVICE_TEST; NATIVE_ACCEPTANCE_HOLD.
+
+Conversion update, 2026-09-09T19:20:45Z: the official registry reports complete=true, with both Mac and Windows asset bundles complete. LOD generation remains pending. The World still points to the verified v0.8 entity. The user can now test; this does not establish Android touch, audio or multiplayer acceptance.
 
 Publication update, 2026-09-09T19:09:41Z: the retry succeeded. World entity `bafkreihaetagbxg7o5v2kbk3vytjpsmd6au2pttt3v3mscqf5kccbs6xva` contains the exact v0.8 production bundle (byte-identical verification). Creator Hub confirms upload complete; registry conversion is pending. See [the deployment receipt](AFFINITY-ARENA-V08-WORLD-RECEIPT.json). Statements below about the earlier undeployed candidate describe the pre-publication review, not current deployment status. Physical-device acceptance remains pending.
 
