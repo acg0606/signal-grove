@@ -31,5 +31,5 @@ export default async ({ project }) => {
     );
   }
   await p.frame(17,'renders/rehearsal.png');
-  await p.render('renders/affinity-arena-presentation-silent.mp4',{depth:8,bitrate:'3M',concurrency:2});
+  await p.render('renders/affinity-arena-presentation-silent.mp4',{depth:8,bitrate:3000000,concurrency:2});
 };
