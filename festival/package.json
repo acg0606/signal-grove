@@ -1,0 +1,24 @@
+{
+  "name": "affinity-arena-authority-lab",
+  "version": "0.13.0-studio-life.3",
+  "private": true,
+  "scripts": {
+    "build:village": "tsx scripts/build-village-assets.ts",
+    "build:props": "tsx scripts/build-studio-props.ts && tsx scripts/build-navigation.ts",
+    "build:garden": "tsx scripts/build-garden.ts",
+    "check": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "build": "sdk-commands build --skip-install --production",
+    "server-logs": "sdk-commands sdk-server-logs"
+  },
+  "dependencies": {
+    "@dcl/js-runtime": "7.27.1-33533530571.commit-451d001",
+    "@dcl/sdk": "7.27.1-33533530571.commit-451d001"
+  },
+  "devDependencies": {
+    "@dcl-regenesislabs/bevy-headless-server": "0.1.0-32423386171.commit-d18de13",
+    "@dcl/sdk-commands": "7.27.1-33533530571.commit-451d001",
+    "tsx": "4.20.3",
+    "typescript": "5.8.3"
+  }
+}

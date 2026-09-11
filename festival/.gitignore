@@ -1,0 +1,8 @@
+node_modules/
+bin/
+.runtime-data/
+runtime/
+.editor/
+*.log
+.env
+.env.*

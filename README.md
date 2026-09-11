@@ -1,4 +1,8 @@
-# Affinity Arena — development branch
+# Affinity Arena — current festival release
+
+**Current published version:** [Studio Life / festival source, play instructions and verified release evidence](FESTIVAL-RELEASE.md). Build from `festival/`, not the older prototype below. DoraHacks BUIDL 48375 is already submitted, Under Review; this does not mean eligibility or a prize has been approved.
+
+## Historical development branch
 
 This branch contains the music-affinity evolution of Signal Grove: walk to a genre instrument, rehearse C/E/G notes for 21 seconds, review your attributes, then walk to a stage microphone for a live show that counts twice. Includes K-pop, Brazilian Funk, Latin Urban, Afrobeats, Hip-hop and Electronic with equal mechanics. A 10-second queue fills empty seats with explicitly labeled simulated performers. Original musical icons and synthesized lead tones respond to hits; wrong or missed notes trigger a short error sound. No commercial recording is used. Compact translucent guidance and minimizable panels keep the venue visible. The original Signal Grove source and main branch are preserved.
 
