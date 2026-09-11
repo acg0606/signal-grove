@@ -14,14 +14,14 @@ export default async ({ project }) => {
   for (let i=0;i<pages.length;i++) {
     const [label,title,body,foot]=pages[i], accent=colors[i];
     p.compose(
-      <frame width={1280} height={720} layout="none" background="#101126"
+      <frame x={0} y={0} width={1280} height={720} layout="none" background="#101126"
         motion={{enter:{from:{opacity:0,y:12},duration:0.45},exit:{to:{opacity:0},duration:0.3,anchor:'end'}}}>
         <rect x={0} y={0} width={14} height={720} fill={accent}/>
         <text x={56} y={40} width={1160} height={45} fontFamily="Bebas Neue" fontSize={30} letterSpacing={2} color={accent}>{label}</text>
         <text x={56} y={128} width={775} height={260} fontFamily="Bebas Neue" fontSize={92} lineHeight={1.0} color="#ffffff">{title}</text>
         <text x={60} y={392} width={750} height={132} fontFamily="Montserrat" fontSize={30} lineHeight={1.4} color="#e6e7f5">{body}</text>
         <frame x={860} y={143} width={354} height={354} radius={28} clip={true} layout="none">
-          <media file={cover} width={354} height={354} fit="cover"/>
+          <media x={0} y={0} file={cover} width={354} height={354} fit="cover"/>
         </frame>
         <rect x={60} y={567} width={1154} height={2} fill="#383c58"/>
         <text x={60} y={590} width={1150} height={65} fontFamily="Montserrat" fontSize={20} lineHeight={1.2} color="#c9cde7">{foot}</text>
